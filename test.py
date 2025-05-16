@@ -7,7 +7,7 @@
 # # Các class lỗi cần hiển thị
 # VISIBLE_CLASSES = {"miss", "bridge", "lifted"}
 
-# def detect_and_annotate(img_path, save_dir="storage/detected_images"):
+# def detect_image(img_path, save_dir="storage/detected_images"):
 #     img = cv2.imread(img_path)
 #     if img is None:
 #         print(f"[!] Không đọc được ảnh từ {img_path}")
@@ -50,7 +50,8 @@
 import os
 import cv2
 from ultralytics import YOLO
-model = YOLO("/home/ducanh/Desktop/defect_detection_prj/models/v8/bestv8.pt")
+from yolov5 import YOLOv5
+model = YOLO("/home/ducanh/Desktop/defect_detection_prj/models/v5/best.pt")
 
 def detect_image(image_path):
     if not os.path.exists(image_path):
@@ -58,3 +59,8 @@ def detect_image(image_path):
     img = cv2.imread(image_path)
     results = model(img)
     return results
+
+if __name__ == "__main__":
+    image_path = "/home/ducanh/Desktop/defect_detection_prj/storage/captured_images/captured_image_20250514_114209.png"  # Thay đổi đường dẫn ảnh
+    results = detect_image(image_path)
+    print (results)
