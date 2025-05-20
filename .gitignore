@@ -42,3 +42,7 @@ Thumbs.db
 
 # Exported files
 export/
+
+# SQLite database files
+*.db
+*.sqlite3
