@@ -1,6 +1,6 @@
 import sqlite3
 
-def initialize_database(db_name='database.db'):
+def initialize_database(db_name='sqlite_database/db/detections.db'):
     connection = sqlite3.connect(db_name)
     cursor = connection.cursor()
 

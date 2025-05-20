@@ -6,12 +6,43 @@ import cv2
 import sys
 from datetime import datetime
 
-def save_detection_to_db(db_path, img_raw, img_detect, defect):
+DB_PATH = 'sqlite_database/db/detections.db'
+
+#Helper function
+def execute_query(query, params=None, fetch=False):
+    """
+    Execute a query on the database.
+
+    Args:
+        query (str): SQL query to execute.
+        params (tuple): Parameters for the query.
+        fetch (bool): Whether to fetch results.
+
+    Returns:
+        list: Query results if fetch is True, otherwise None.
+    """
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        if params:
+            cursor.execute(query, params)
+        else:
+            cursor.execute(query)
+        if fetch:
+            results = cursor.fetchall()
+            conn.close()
+            return results
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Database query error: {e}")
+    return None
+
+def save_detection_to_db(img_raw, img_detect, defect):
     """
     Save detection data to the SQLite database.
 
     Args:
-        db_path (str): Path to the SQLite database file.
         img_raw (bytes): Raw image data (binary).
         img_detect (bytes): Detected image data (binary).
         defect (str): Detected defect description.
@@ -19,20 +50,12 @@ def save_detection_to_db(db_path, img_raw, img_detect, defect):
     # Get the current timestamp
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # Connect to the database
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
-
     # Insert data into the detections table
     query = """
     INSERT INTO detections (time, img_raw, img_detect, defect, barcode)
     VALUES (?, ?, ?, ?, NULL);
     """
-    cursor.execute(query, (current_time, img_raw, img_detect, defect))
-
-    # Commit and close the connection
-    conn.commit()
-    conn.close()
+    execute_query(query, (current_time, img_raw, img_detect, defect))
 
 def save_to_db(img_raw_path, img_with_boxes, result_obj):
     """
@@ -70,85 +93,103 @@ def save_to_db(img_raw_path, img_with_boxes, result_obj):
             confidence = confidences[i] * 100
             defect_info = f"{defect_name} ({confidence:.2f}%)"
 
-            save_detection_to_db(
-                db_path="sqlite_database/db/detections.db",
-                img_raw=img_raw,
-                img_detect=img_detect,
-                defect=defect_info
-            )
+            save_detection_to_db(img_raw, img_detect, defect_info)
 
         print("Data saved to database successfully.")
 
     except Exception as e:
         print(f"Error saving to database: {e}")
+
+def create_database():
+    """Check if the database exists; if not, create it and initialize tables."""
+    # Ensure the directory exists
+    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     
-def create_connection(db_file):
-    """Create a database connection to the SQLite database specified by db_file."""
-    import sqlite3
-    from sqlite3 import Error
+    # Check if the database file exists
+    if not os.path.exists(DB_PATH):
+        try:
+            query = '''
+                CREATE TABLE IF NOT EXISTS detections (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    time TEXT NOT NULL,
+                    img_raw BLOB NOT NULL,
+                    img_detect BLOB NOT NULL,
+                    defect TEXT,
+                    barcode TEXT
+                )
+            '''
+            execute_query(query)
+            print(f"Database created at {DB_PATH}")
+        except Exception as e:
+            print(f"Error creating database: {str(e)}")
+    else:
+        print(f"Database already exists at {DB_PATH}")
 
-    conn = None
+def create_connection():
+    """Create a database connection to the SQLite database."""
     try:
-        conn = sqlite3.connect(db_file)
+        conn = sqlite3.connect(DB_PATH)
+        return conn
     except Error as e:
         print(e)
+    return None
 
-    return conn
+def get_defect_types():
+    """Fetch distinct defect types from the database."""
+    query = "SELECT DISTINCT defect FROM detections"
+    return execute_query(query, fetch=True)
 
+def get_detections(date_from, date_to, defect_filter=None):
+    """
+    Fetch detection records based on filters.
 
-def create_table(conn):
-    """Create the table in the database."""
-    sql_create_table = """CREATE TABLE IF NOT EXISTS records (
-                            id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            time TEXT NOT NULL,
-                            img_raw BLOB NOT NULL,
-                            img_detect BLOB NOT NULL,
-                            defect TEXT,
-                            barcode TEXT
-                        );"""
+    Args:
+        date_from (str): Start date in 'YYYY-MM-DD' format.
+        date_to (str): End date in 'YYYY-MM-DD' format.
+        defect_filter (str): Filter for defect type (optional).
+
+    Returns:
+        list: List of detection records.
+    """
+    query = "SELECT rowid, time, img_raw, img_detect, defect, barcode FROM detections WHERE time BETWEEN ? AND ?"
+    params = [date_from, date_to]
+
+    if defect_filter and defect_filter != "All":
+        if defect_filter == "No defects":
+            query += " AND defect = ?"
+            params.append("No defects")
+        else:
+            query += " AND defect LIKE ?"
+            params.append(f"%{defect_filter}%")
+
+    query += " ORDER BY time DESC"
+    return execute_query(query, params, fetch=True)
+
+def get_image_data(row_id, image_type):
+    """
+    Fetch image data (raw or detection) for a specific row ID.
+
+    Args:
+        row_id (int): The ID of the detection record.
+        image_type (str): The column name ('img_raw' or 'img_detect').
+
+    Returns:
+        bytes: Image data as binary.
+    """
+    query = f"SELECT {image_type} FROM detections WHERE rowid = ?"
+    result = execute_query(query, (row_id,), fetch=True)
+    return result[0][0] if result and result[0][0] else None
+
+def delete_detection_from_db(row_id):
+    """
+    Delete a detection record from the database by its row ID.
+
+    Args:
+        row_id (int): The ID of the detection record to delete.
+    """
     try:
-        c = conn.cursor()
-        c.execute(sql_create_table)
-    except Error as e:
-        print(e)
-
-
-def insert_record(conn, record):
-    """Insert a new record into the records table."""
-    sql_insert_record = '''INSERT INTO records(time, img_raw, img_detect, defect, barcode)
-                           VALUES(?,?,?,?,?)'''
-    cur = conn.cursor()
-    cur.execute(sql_insert_record, record)
-    conn.commit()
-    return cur.lastrowid
-
-
-def query_records(conn):
-    """Query all rows in the records table."""
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM records")
-
-    rows = cur.fetchall()
-    return rows
-
-
-def update_record(conn, record):
-    """Update a record in the records table."""
-    sql_update_record = '''UPDATE records
-                           SET time = ?,
-                               img_raw = ?,
-                               img_detect = ?,
-                               defect = ?,
-                               barcode = ?
-                           WHERE id = ?'''
-    cur = conn.cursor()
-    cur.execute(sql_update_record, record)
-    conn.commit()
-
-
-def delete_record(conn, id):
-    """Delete a record by record id."""
-    sql_delete_record = 'DELETE FROM records WHERE id=?'
-    cur = conn.cursor()
-    cur.execute(sql_delete_record, (id,))
-    conn.commit()
+        query = "DELETE FROM detections WHERE rowid = ?"
+        execute_query(query, (row_id,))
+        print(f"Detection #{row_id} deleted successfully.")
+    except Exception as e:
+        print(f"Error deleting detection #{row_id}: {str(e)}")
