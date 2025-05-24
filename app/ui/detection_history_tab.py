@@ -9,8 +9,7 @@ import sqlite3
 import cv2
 import numpy as np
 from sqlite_database.src.db_operations import (
-    get_defect_types, execute_query, 
-    delete_detection_from_db,
+    get_defect_types, delete_detection_from_db,
     get_detections, get_image_data
     )
 import os

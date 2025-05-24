@@ -38,7 +38,7 @@ def execute_query(query, params=None, fetch=False):
         print(f"Database query error: {e}")
     return None
 
-def save_detection_to_db(img_raw, img_detect, defect):
+def save_detection_to_db(img_raw, img_detect, defect, barcode=None):
     """
     Save detection data to the SQLite database.
 
@@ -46,16 +46,27 @@ def save_detection_to_db(img_raw, img_detect, defect):
         img_raw (bytes): Raw image data (binary).
         img_detect (bytes): Detected image data (binary).
         defect (str): Detected defect description.
-    """
-    # Get the current timestamp
-    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        barcode (str): Barcode information (optional).
 
-    # Insert data into the detections table
-    query = """
-    INSERT INTO detections (time, img_raw, img_detect, defect, barcode)
-    VALUES (?, ?, ?, ?, NULL);
+    Returns:
+        int: The row_id of the inserted record.
     """
-    execute_query(query, (current_time, img_raw, img_detect, defect))
+    try:
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        query = """
+        INSERT INTO detections (time, img_raw, img_detect, defect, barcode)
+        VALUES (?, ?, ?, ?, ?);
+        """
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute(query, (current_time, img_raw, img_detect, defect, barcode))
+        conn.commit()
+        row_id = cursor.lastrowid
+        conn.close()
+        return row_id
+    except Exception as e:
+        print(f"Error saving detection to database: {e}")
+        return None
 
 def save_to_db(img_raw_path, img_with_boxes, result_obj):
     """
@@ -100,6 +111,49 @@ def save_to_db(img_raw_path, img_with_boxes, result_obj):
     except Exception as e:
         print(f"Error saving to database: {e}")
 
+def update_detection_in_db(row_id, img_with_boxes, result_obj):
+    """
+    Update detection data in the SQLite database.
+
+    Args:
+        row_id (int): The row ID of the record to update.
+        img_with_boxes (numpy.ndarray): Image with bounding boxes drawn.
+        result_obj (object): Detection result object containing defect information.
+    """
+    try:
+        # Save the detected image to a file
+        detected_path = f"/home/ducanh/Desktop/defect_detection_prj/storage/detected_images/{row_id}_detected.png"
+        cv2.imwrite(detected_path, img_with_boxes)
+
+        # Read detected image as binary data
+        with open(detected_path, "rb") as detected_file:
+            img_detect = detected_file.read()
+
+        # Extract defect information
+        classes = result_obj.names
+        boxes = result_obj.boxes
+        labels = boxes.cls.cpu().tolist() if boxes is not None else []
+        confidences = boxes.conf.cpu().tolist() if boxes is not None else []
+
+        # Filter out OK class
+        defect_indices = [(i, cls_id) for i, cls_id in enumerate(labels) if classes[int(cls_id)].lower() != "ok"]
+        defects = [
+            f"{classes[int(cls_id)]} ({confidences[i] * 100:.2f}%)"
+            for i, cls_id in defect_indices
+        ]
+        defect_info = ", ".join(defects) if defects else "No defects"
+
+        # Update the database record
+        query = """
+        UPDATE detections
+        SET img_detect = ?, defect = ?
+        WHERE rowid = ?;
+        """
+        execute_query(query, (img_detect, defect_info, row_id))
+        print(f"Detection record {row_id} updated successfully.")
+    except Exception as e:
+        print(f"Error updating detection in database: {e}")
+
 def create_database():
     """Check if the database exists; if not, create it and initialize tables."""
     # Ensure the directory exists
@@ -111,9 +165,9 @@ def create_database():
             query = '''
                 CREATE TABLE IF NOT EXISTS detections (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    time TEXT NOT NULL,
-                    img_raw BLOB NOT NULL,
-                    img_detect BLOB NOT NULL,
+                    time TEXT,
+                    img_raw BLOB,
+                    img_detect BLOB,
                     defect TEXT,
                     barcode TEXT
                 )

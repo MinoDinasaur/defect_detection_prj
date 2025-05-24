@@ -8,27 +8,26 @@ from PySide6.QtGui import QImage, QPixmap, QIcon, QFont, QColor, QPalette
 from app.model.detector import detect_image
 import cv2
 from datetime import datetime
-import sqlite3
+from app.camera.basler_camera import PylonCamera
 from app.ui.detection_history_tab import DetectionHistoryTab
-from sqlite_database.src.db_operations import save_to_db, create_database, create_connection
+from sqlite_database.src.db_operations import update_detection_in_db, create_database, create_connection
 
 class ImageThread(QThread):
     """Thread for loading and processing images"""
     image_loaded = Signal(object, object)
     
-    def __init__(self, image_path):
+    def __init__(self, row_id):
         super().__init__()
-        self.image_path = image_path
+        self.row_id = row_id 
         
     def run(self):
         # Process image in background thread
-        results = detect_image(self.image_path)
-        result_obj = results[0]
-        img_with_boxes = result_obj.plot()
-        
-        # Emit the processed image and results
-        self.image_loaded.emit(img_with_boxes, result_obj)
-
+        results = detect_image(self.row_id)  
+        if results:
+            result_obj = results[0]
+            img_with_boxes = result_obj.plot()
+            # Emit the processed image and results
+            self.image_loaded.emit(img_with_boxes, result_obj)
 class DefectDetectionApp(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -190,7 +189,10 @@ class DefectDetectionApp(QMainWindow):
         self.lblImage.setStyleSheet("""
             font-size: 16px;
             color: #888;
-            background-color: #f9f9f9;
+            background-color: qlineargradient(
+                spread:pad, x1:0, y1:0, x2:1, y2:0, 
+                stop:0 #f9f9f9, stop:1 #f1f1f1
+            );
         """)
         image_frame_layout.addWidget(self.lblImage)
         
@@ -344,21 +346,12 @@ class DefectDetectionApp(QMainWindow):
             self.statusBar.showMessage("Capturing image...", 2000)
             self.set_processing_state(True)
             
-            # camera = PylonCamera()                             #Uncomment dòng này để chụp ảnh từ camera
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"captured_image_{timestamp}.png"
-            
-            # captured_img_path = camera.capture_image(filename) #Uncomment dòng này để chụp ảnh từ camera
-            
-            # For testing, we'll use the test image
-            captured_img_path = self.test_img_path              #Comment dòng này để chụp ảnh từ camera
-            self.last_captured_path = captured_img_path
-            
-            # Load raw image for saving to database
-            self.current_raw_image = cv2.imread(captured_img_path)
-            
+            camera = PylonCamera() 
+            row_id = camera.capture_image()  # Save raw image and get row_id
+            if row_id is None:
+                raise Exception("Failed to capture image.")    
             # Process image in background thread
-            self.image_thread = ImageThread(captured_img_path)
+            self.image_thread = ImageThread(row_id)  # Truyền row_id vào ImageThread
             self.image_thread.image_loaded.connect(self.on_image_processed)
             self.image_thread.start()
             
@@ -371,7 +364,7 @@ class DefectDetectionApp(QMainWindow):
         """Handle processed image from thread"""
         try:
             # Save to database
-            save_to_db(self.last_captured_path, img_with_boxes, result_obj)
+            update_detection_in_db(self.image_thread.row_id, img_with_boxes, result_obj)
 
             # Mark history as needing refresh
             self.history_loaded = False
@@ -408,6 +401,8 @@ class DefectDetectionApp(QMainWindow):
                 defect_types = set(classes[int(cls_id)] for _, cls_id in defect_indices)
                 
                 # Update statistics
+                self.total_defects_label.setStyleSheet("background-color: #e57373; color: white; font-size: 16px; padding: 10px;")
+                self.defect_types_label.setStyleSheet("background-color: #64b5f6; color: white; font-size: 16px; padding: 10px;")
                 self.total_defects_label.setText(f"Total Defects: {defect_count}")
                 self.defect_types_label.setText(f"Defect Types: {len(defect_types)}")
                 self.status_label.setText(f"Status: Defects Detected")
