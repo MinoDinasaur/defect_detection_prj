@@ -43,7 +43,7 @@ def generate_barcode_image(data_to_encode, filename="barcode_generated", image_f
 # --- Example Usage ---
 if __name__ == "__main__":
     my_data = "PYTHON-DS22-12345"
-    generate_barcode_imưq2age(my_data, "my_product_code")
+    generate_barcode_image(my_data, "my_product_code")
 
     my_data_2 = "https://www.python.org"
     generate_barcode_image(my_data_2, "python_website_qr", image_format="PNG") # Code128 is not for URLs primarily, QR better
