@@ -88,7 +88,7 @@ if __name__ == "__main__":
     print("\n" + "="*50)
     
     # Generate multiple random barcodes
-    print("Generating 5 random barcodes:")
+    print("Generating random barcodes:")
     for i in range(100):
         code, file = generate_random_da_barcode(6)  # 6 digits
         print(f"  {i+1}. {code} -> {file}")
