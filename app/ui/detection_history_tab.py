@@ -13,6 +13,7 @@ from sqlite_database.src.db_operations import (
     get_detections, get_image_data
 )
 import os
+from app.ui.styles import HistoryTabStyles
 
 class ImageViewDialog(QDialog):
     """Enhanced dialog for viewing images in larger size"""
@@ -20,12 +21,7 @@ class ImageViewDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle(f"🖼️ {title}")
         self.setMinimumSize(800, 600)
-        self.setStyleSheet("""
-            QDialog {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-                    stop:0 #f8f9fa, stop:1 #e9ecef);
-            }
-        """)
+        self.setStyleSheet(HistoryTabStyles.get_dialog_style())
         
         # Layout
         layout = QVBoxLayout(self)
@@ -34,25 +30,11 @@ class ImageViewDialog(QDialog):
         
         # Title section
         title_frame = QFrame()
-        title_frame.setStyleSheet("""
-            QFrame {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #4a86e8, stop:1 #3a76d8);
-                border-radius: 8px;
-                padding: 12px;
-            }
-        """)
+        title_frame.setStyleSheet(HistoryTabStyles.get_dialog_title_frame_style())
         title_layout = QHBoxLayout(title_frame)
         
         title_label = QLabel(f"📸 {title}")
-        title_label.setStyleSheet("""
-            QLabel {
-                color: white;
-                font-size: 18px;
-                font-weight: bold;
-                margin: 0;
-            }
-        """)
+        title_label.setStyleSheet(HistoryTabStyles.get_dialog_title_style())
         title_layout.addWidget(title_label)
         title_layout.addStretch()
         
@@ -62,14 +44,7 @@ class ImageViewDialog(QDialog):
         self.image_label = QLabel()
         self.image_label.setAlignment(Qt.AlignCenter)
         self.image_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.image_label.setStyleSheet("""
-            QLabel {
-                background: white;
-                border: 2px solid #e0e6ed;
-                border-radius: 8px;
-                padding: 8px;
-            }
-        """)
+        self.image_label.setStyleSheet(HistoryTabStyles.get_dialog_image_label_style())
         
         # Convert image data to QPixmap
         if isinstance(image_data, bytes):
@@ -99,41 +74,11 @@ class ImageViewDialog(QDialog):
         
         save_button = QPushButton("💾 Save Image")
         save_button.clicked.connect(lambda: self.save_image(pixmap))
-        save_button.setStyleSheet("""
-            QPushButton {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #28a745, stop:1 #218838);
-                color: white;
-                border: none;
-                border-radius: 6px;
-                padding: 8px 16px;
-                font-weight: 600;
-                min-width: 100px;
-            }
-            QPushButton:hover {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #34ce57, stop:1 #28a745);
-            }
-        """)
+        save_button.setStyleSheet(HistoryTabStyles.get_dialog_save_button_style())
         
         close_button = QPushButton("✖️ Close")
         close_button.clicked.connect(self.accept)
-        close_button.setStyleSheet("""
-            QPushButton {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #6c757d, stop:1 #5a6268);
-                color: white;
-                border: none;
-                border-radius: 6px;
-                padding: 8px 16px;
-                font-weight: 600;
-                min-width: 80px;
-            }
-            QPushButton:hover {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #7c868d, stop:1 #6c757d);
-            }
-        """)
+        close_button.setStyleSheet(HistoryTabStyles.get_dialog_close_button_style())
         
         button_layout.addWidget(save_button)
         button_layout.addWidget(close_button)
@@ -167,35 +112,15 @@ class DetectionHistoryTab(QWidget):
         
         # === Enhanced Header ===
         header_frame = QFrame()
-        header_frame.setStyleSheet("""
-            QFrame {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #667eea, stop:1 #764ba2);
-                border-radius: 16px;
-                padding: 20px;
-            }
-        """)
+        header_frame.setStyleSheet(HistoryTabStyles.get_header_frame_style())
         
         header_layout = QHBoxLayout(header_frame)
         
         title_label = QLabel("📊 Detection History & Analytics")
-        title_label.setStyleSheet("""
-            QLabel {
-                color: white;
-                font-size: 28px;
-                font-weight: bold;
-                margin: 0;
-            }
-        """)
+        title_label.setStyleSheet(HistoryTabStyles.get_header_title_style())
         
         subtitle_label = QLabel("View and analyze past quality control results")
-        subtitle_label.setStyleSheet("""
-            QLabel {
-                color: rgba(255, 255, 255, 0.8);
-                font-size: 16px;
-                margin: 0;
-            }
-        """)
+        subtitle_label.setStyleSheet(HistoryTabStyles.get_header_subtitle_style())
         
         title_layout = QVBoxLayout()
         title_layout.addWidget(title_label)
@@ -208,51 +133,7 @@ class DetectionHistoryTab(QWidget):
         
         # === Enhanced Filter Section ===
         filter_group = QGroupBox("🔍 Filter & Search Options")
-        filter_group.setStyleSheet("""
-            QGroupBox {
-                font-weight: 600;
-                font-size: 16px;
-                color: #2c3e50;
-                border: 2px solid #3498db;
-                border-radius: 12px;
-                margin-top: 20px;
-                padding: 20px;
-                background: rgba(255, 255, 255, 0.95);
-            }
-            QGroupBox::title {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #3498db, stop:1 #2980b9);
-                color: white;
-                padding: 8px 20px;
-                border-radius: 8px;
-                margin-left: 10px;
-            }
-            QDateEdit, QComboBox {
-                padding: 8px 12px;
-                border: 2px solid #bdc3c7;
-                border-radius: 8px;
-                font-size: 14px;
-                background: white;
-                min-width: 120px;
-            }
-            QDateEdit:focus, QComboBox:focus {
-                border: 2px solid #3498db;
-            }
-            QPushButton {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #3498db, stop:1 #2980b9);
-                color: white;
-                border: none;
-                border-radius: 8px;
-                padding: 10px 16px;
-                font-weight: 600;
-                min-width: 100px;
-            }
-            QPushButton:hover {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #4ea8eb, stop:1 #3990c9);
-            }
-        """)
+        filter_group.setStyleSheet(HistoryTabStyles.get_filter_group_style())
         
         filter_layout = QGridLayout(filter_group)
         filter_layout.setSpacing(16)
@@ -286,17 +167,7 @@ class DetectionHistoryTab(QWidget):
         for i, (text, func) in enumerate(quick_buttons):
             btn = QPushButton(text)
             btn.clicked.connect(func)
-            btn.setStyleSheet("""
-                QPushButton {
-                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                        stop:0 #95a5a6, stop:1 #7f8c8d);
-                    min-width: 80px;
-                }
-                QPushButton:hover {
-                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                        stop:0 #a5b5b6, stop:1 #8f9c8d);
-                }
-            """)
+            btn.setStyleSheet(HistoryTabStyles.get_quick_filter_button_style())
             filter_layout.addWidget(btn, 1, i)
         
         # Apply filter button
@@ -321,37 +192,7 @@ class DetectionHistoryTab(QWidget):
         self.history_table.setSelectionBehavior(QTableWidget.SelectRows)
         self.history_table.setAlternatingRowColors(True)
         
-        self.history_table.setStyleSheet("""
-            QTableWidget {
-                border: 2px solid #bdc3c7;
-                border-radius: 12px;
-                background-color: white;
-                gridline-color: #ecf0f1;
-                font-size: 14px;
-                selection-background-color: #e8f4fd;
-            }
-            QHeaderView::section {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #34495e, stop:1 #2c3e50);
-                color: white;
-                border: 1px solid #2c3e50;
-                padding: 12px;
-                font-weight: bold;
-                font-size: 14px;
-            }
-            QTableWidget::item {
-                padding: 12px;
-                border-bottom: 1px solid #ecf0f1;
-            }
-            QTableWidget::item:selected {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #e8f4fd, stop:1 #d4edda);
-                color: #2c3e50;
-            }
-            QTableWidget::item:hover {
-                background-color: #f8f9fa;
-            }
-        """)
+        self.history_table.setStyleSheet(HistoryTabStyles.get_table_style())
         
         results_splitter.addWidget(self.history_table)
         
@@ -359,27 +200,13 @@ class DetectionHistoryTab(QWidget):
         details_frame = QFrame()
         details_frame.setFrameShape(QFrame.StyledPanel)
         details_frame.setMaximumHeight(220)
-        details_frame.setStyleSheet("""
-            QFrame {
-                background: white;
-                border: 2px solid #e0e6ed;
-                border-radius: 12px;
-                padding: 20px;
-            }
-        """)
+        details_frame.setStyleSheet(HistoryTabStyles.get_details_frame_style())
         
         details_layout = QVBoxLayout(details_frame)
         
         # Enhanced detail labels
         details_title = QLabel("📋 Selected Detection Details")
-        details_title.setStyleSheet("""
-            QLabel {
-                font-size: 18px;
-                font-weight: bold;
-                color: #2c3e50;
-                margin-bottom: 10px;
-            }
-        """)
+        details_title.setStyleSheet(HistoryTabStyles.get_details_title_style())
         details_layout.addWidget(details_title)
         
         self.details_defect = QLabel("🔧 Defect: None selected")
@@ -387,16 +214,7 @@ class DetectionHistoryTab(QWidget):
         self.details_barcode = QLabel("📦 Barcode: None selected")
         
         for label in [self.details_defect, self.details_time, self.details_barcode]:
-            label.setStyleSheet("""
-                QLabel {
-                    font-size: 14px;
-                    color: #34495e;
-                    padding: 6px;
-                    background: #f8f9fa;
-                    border-radius: 6px;
-                    margin: 2px 0;
-                }
-            """)
+            label.setStyleSheet(HistoryTabStyles.get_details_label_style())
             details_layout.addWidget(label)
         
         # Enhanced action buttons
@@ -414,26 +232,7 @@ class DetectionHistoryTab(QWidget):
             btn = QPushButton(text)
             btn.setEnabled(False)
             btn.clicked.connect(func)
-            btn.setStyleSheet(f"""
-                QPushButton {{
-                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                        stop:0 {color}, stop:1 {self.darken_color(color)});
-                    color: white;
-                    border: none;
-                    border-radius: 8px;
-                    padding: 10px 16px;
-                    font-weight: 600;
-                    min-width: 120px;
-                }}
-                QPushButton:hover {{
-                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                        stop:0 {self.lighten_color(color)}, stop:1 {color});
-                }}
-                QPushButton:disabled {{
-                    background: #bdc3c7;
-                    color: #7f8c8d;
-                }}
-            """)
+            btn.setStyleSheet(HistoryTabStyles.get_action_button_style(color))
             self.action_buttons.append(btn)
             actions_layout.addWidget(btn)
         
@@ -451,26 +250,6 @@ class DetectionHistoryTab(QWidget):
         # Initialize data
         self.populate_defect_types()
         self.refresh_data()
-    
-    def darken_color(self, color):
-        """Helper function to darken a color"""
-        color_map = {
-            "#3498db": "#2980b9",
-            "#2ecc71": "#27ae60", 
-            "#f39c12": "#e67e22",
-            "#e74c3c": "#c0392b"
-        }
-        return color_map.get(color, color)
-    
-    def lighten_color(self, color):
-        """Helper function to lighten a color"""
-        color_map = {
-            "#3498db": "#5dade2",
-            "#2ecc71": "#58d68d",
-            "#f39c12": "#f8c471", 
-            "#e74c3c": "#ec7063"
-        }
-        return color_map.get(color, color)
     
     def set_date_range(self, days_back):
         """Set date range for quick filters"""
@@ -548,7 +327,7 @@ class DetectionHistoryTab(QWidget):
                         lbl = QLabel()
                         lbl.setPixmap(pixmap)
                         lbl.setAlignment(Qt.AlignCenter)
-                        lbl.setStyleSheet("border: 1px solid #dee2e6; border-radius: 3px;")
+                        lbl.setStyleSheet(HistoryTabStyles.get_image_thumbnail_style())
                         self.history_table.setCellWidget(i, col, lbl)
                     else:
                         self.history_table.setItem(i, col, QTableWidgetItem("No image"))
@@ -608,30 +387,11 @@ class DetectionHistoryTab(QWidget):
                 btn.setEnabled(True)
             
             # Color coding for defect status
+            defect_styles = HistoryTabStyles.get_defect_status_styles()
             if defect.lower() != "no defects" and defect.lower() != "none":
-                self.details_defect.setStyleSheet("""
-                    QLabel {
-                        font-size: 11px;
-                        color: white;
-                        padding: 4px 8px;
-                        background: #dc3545;
-                        border-radius: 4px;
-                        margin: 2px;
-                        font-weight: bold;
-                    }
-                """)
+                self.details_defect.setStyleSheet(defect_styles['failed'])
             else:
-                self.details_defect.setStyleSheet("""
-                    QLabel {
-                        font-size: 11px;
-                        color: white;
-                        padding: 4px 8px;
-                        background: #28a745;
-                        border-radius: 4px;
-                        margin: 2px;
-                        font-weight: bold;
-                    }
-                """)
+                self.details_defect.setStyleSheet(defect_styles['passed'])
         else:
             self.reset_details()
     
@@ -641,17 +401,9 @@ class DetectionHistoryTab(QWidget):
         self.details_time.setText("⏰ None selected")
         self.details_barcode.setText("📦 None selected")
         
+        defect_styles = HistoryTabStyles.get_defect_status_styles()
         for label in [self.details_defect, self.details_time, self.details_barcode]:
-            label.setStyleSheet("""
-                QLabel {
-                    font-size: 11px;
-                    color: #495057;
-                    padding: 4px 8px;
-                    background: #f8f9fa;
-                    border-radius: 4px;
-                    margin: 2px;
-                }
-            """)
+            label.setStyleSheet(defect_styles['none_selected'])
         
         for btn in self.action_buttons:
             btn.setEnabled(False)
