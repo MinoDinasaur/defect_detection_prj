@@ -8,6 +8,38 @@ from datetime import datetime
 
 DB_PATH = 'sqlite_database/db/detections.db'
 
+# Global variable to store scanned barcode temporarily
+scanned_barcode = None
+
+def set_scanned_barcode(barcode):
+    """
+    Set the scanned barcode value.
+    
+    Args:
+        barcode (str): The scanned barcode value
+    """
+    global scanned_barcode
+    scanned_barcode = barcode
+    print(f"Barcode set: {barcode}")
+
+def get_scanned_barcode():
+    """
+    Get the current scanned barcode value.
+    
+    Returns:
+        str: The current scanned barcode or None
+    """
+    global scanned_barcode
+    return scanned_barcode
+
+def reset_scanned_barcode():
+    """
+    Reset the scanned barcode to None.
+    """
+    global scanned_barcode
+    scanned_barcode = None
+    print("Barcode reset")
+
 #Helper function
 def execute_query(query, params=None, fetch=False):
     """
@@ -51,7 +83,11 @@ def save_detection_to_db(img_raw, img_detect, defect, barcode=None):
     Returns:
         int: The row_id of the inserted record.
     """
+    global scanned_barcode
     try:
+        # Use provided barcode or fall back to scanned_barcode
+        final_barcode = barcode if barcode is not None else scanned_barcode
+        
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         query = """
         INSERT INTO detections (time, img_raw, img_detect, defect, barcode)
@@ -59,10 +95,12 @@ def save_detection_to_db(img_raw, img_detect, defect, barcode=None):
         """
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
-        cursor.execute(query, (current_time, img_raw, img_detect, defect, barcode))
+        cursor.execute(query, (current_time, img_raw, img_detect, defect, final_barcode))
         conn.commit()
         row_id = cursor.lastrowid
         conn.close()
+        
+        print(f"Detection saved to database with barcode: {final_barcode}")
         return row_id
     except Exception as e:
         print(f"Error saving detection to database: {e}")
@@ -77,6 +115,7 @@ def save_to_db(img_raw_path, img_with_boxes, result_obj):
         img_with_boxes (numpy.ndarray): Image with bounding boxes drawn.
         result_obj (object): Detection result object containing defect information.
     """
+    global scanned_barcode
     try:
         # Save the detected image to a file
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -104,9 +143,13 @@ def save_to_db(img_raw_path, img_with_boxes, result_obj):
             confidence = confidences[i] * 100
             defect_info = f"{defect_name} ({confidence:.2f}%)"
 
-            save_detection_to_db(img_raw, img_detect, defect_info)
+            # Use the scanned barcode
+            save_detection_to_db(img_raw, img_detect, defect_info, barcode=scanned_barcode)
 
         print("Data saved to database successfully.")
+        
+        # Reset the barcode after saving to database
+        reset_scanned_barcode()
 
     except Exception as e:
         print(f"Error saving to database: {e}")

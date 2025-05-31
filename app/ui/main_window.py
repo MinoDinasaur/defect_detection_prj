@@ -11,7 +11,27 @@ import cv2
 from datetime import datetime
 from app.camera.basler_camera import PylonCamera
 from app.ui.detection_history_tab import DetectionHistoryTab
-from sqlite_database.src.db_operations import update_detection_in_db, create_database, create_connection
+from sqlite_database.src.db_operations import update_detection_in_db, create_database, create_connection, get_scanned_barcode
+# Import barcode detector
+from app.barcode.detector import read_from_scanner_pynput
+import threading
+
+class BarcodeThread(QThread):
+    """Thread for running barcode scanner in background"""
+    barcode_scanned = Signal(str)
+    
+    def __init__(self):
+        super().__init__()
+        # Connect to the detector's signal
+        from app.barcode.detector import barcode_scanner
+        barcode_scanner.barcode_detected.connect(self.barcode_scanned.emit)
+    
+    def run(self):
+        """Run barcode scanner in background thread"""
+        try:
+            read_from_scanner_pynput()
+        except Exception as e:
+            print(f"Barcode scanner error: {e}")
 
 class ImageThread(QThread):
     """Thread for loading and processing images"""
@@ -155,10 +175,49 @@ class DefectDetectionApp(QMainWindow):
         create_database()
         create_connection()
         
+        # Initialize and start barcode scanner thread
+        self.init_barcode_scanner()
+        
         self.init_UI()
         # Start with test image if available
         self.test_img_path = "storage/captured_images/captured_image_20250514_114617.png"
         
+    def init_barcode_scanner(self):
+        """Initialize barcode scanner in background thread"""
+        self.barcode_thread = BarcodeThread()
+        self.barcode_thread.barcode_scanned.connect(self.on_barcode_scanned)
+        self.barcode_thread.start()
+        print("🔍 Barcode scanner started in background")
+        
+    @Slot(str)
+    def on_barcode_scanned(self, barcode):
+        """Handle barcode scanned event"""
+        print(f"📦 Barcode scanned: {barcode}")
+        # Update status bar to show scanned barcode
+        self.status_message.setText(f"📦 Barcode: {barcode}")
+        
+        # You can add visual feedback here
+        self.show_barcode_notification(barcode)
+        
+    def show_barcode_notification(self, barcode):
+        """Show visual notification when barcode is scanned"""
+        # Create a temporary status message
+        original_style = self.status_message.styleSheet()
+        self.status_message.setStyleSheet("""
+            QLabel {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #d4edda, stop:1 #c3e6cb);
+                color: #155724;
+                border: 1px solid #c3e6cb;
+                border-radius: 4px;
+                padding: 4px 8px;
+                font-weight: bold;
+            }
+        """)
+        
+        # Reset style after 3 seconds
+        QTimer.singleShot(3000, lambda: self.status_message.setStyleSheet(original_style))
+
     def init_UI(self):
         # Window configuration
         self.setWindowTitle("🔍 Defect Detection System v2.0")
@@ -295,7 +354,7 @@ class DefectDetectionApp(QMainWindow):
         self.setStatusBar(self.statusBar)
         
         # Status message with icon
-        self.status_message = QLabel("🟢 Ready")
+        self.status_message = QLabel("🟢 Ready | 🔍 Barcode scanner active")
         self.status_message.setStyleSheet("font-weight: 500;")
         self.statusBar.addWidget(self.status_message)
         
@@ -319,11 +378,16 @@ class DefectDetectionApp(QMainWindow):
         """)
         self.statusBar.addPermanentWidget(self.progress_bar)
         
+        # Barcode status
+        self.barcode_status = QLabel("📦 Scanner: Active")
+        self.barcode_status.setStyleSheet("color: #28a745; font-weight: 500;")
+        self.statusBar.addPermanentWidget(self.barcode_status)
+        
         # Connection status
         self.connection_status = QLabel("🔗 Database Connected")
         self.connection_status.setStyleSheet("color: #28a745; font-weight: 500;")
         self.statusBar.addPermanentWidget(self.connection_status)
-    
+
     def on_tab_changed(self, index):
         """Load history tab data only once."""
         if self.tab_widget.tabText(index) == "📊 Detection History" and not self.history_loaded:
@@ -605,7 +669,12 @@ class DefectDetectionApp(QMainWindow):
 
     def update_status_bar(self):
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        self.status_message.setText(f"🟢 Ready | {current_time}")
+        # Check if there's a scanned barcode
+        current_barcode = get_scanned_barcode()
+        if current_barcode:
+            self.status_message.setText(f"🟢 Ready | {current_time} | 📦 Barcode: {current_barcode}")
+        else:
+            self.status_message.setText(f"🟢 Ready | {current_time} | 🔍 Scanner active")
 
     def on_capture(self):
         """Enhanced capture with progress indication"""
@@ -790,6 +859,12 @@ class DefectDetectionApp(QMainWindow):
             }
         """)
         
+        # Clear barcode status and reset to default
+        self.status_message.setText("🧹 Results cleared | 🔍 Scanner active")
+        
+        # Reset status message style to default if it was changed by barcode notification
+        self.status_message.setStyleSheet("")
+        
         self.status_message.setText("🧹 Results cleared")
 
     def set_processing_state(self, is_processing):
@@ -866,3 +941,22 @@ class DefectDetectionApp(QMainWindow):
             if pixmap:
                 self.lblImage.setPixmap(pixmap.scaled(
                     self.lblImage.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
+
+    def closeEvent(self, event):
+        """Handle application close event"""
+        try:
+            # Stop barcode scanner thread
+            if hasattr(self, 'barcode_thread') and self.barcode_thread.isRunning():
+                self.barcode_thread.terminate()
+                self.barcode_thread.wait(3000)  # Wait up to 3 seconds
+                print("🔍 Barcode scanner stopped")
+            
+            # Stop other threads if running
+            if hasattr(self, 'image_thread') and self.image_thread.isRunning():
+                self.image_thread.terminate()
+                self.image_thread.wait(1000)
+                
+        except Exception as e:
+            print(f"Error during cleanup: {e}")
+        
+        event.accept()
