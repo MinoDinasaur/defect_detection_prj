@@ -28,11 +28,6 @@ Follow these steps to set up the project locally:
    pip install -r requirements.txt
    ```
 
-3. Run the setup script (if applicable):
-   ```bash
-   python setup.py install
-   ```
-
 ## Usage
 
 1. Prepare your dataset and ensure it's in the correct format.
@@ -80,7 +75,6 @@ This project is licensed under the MIT License. See the `LICENSE` file for detai
 For questions or feedback, feel free to reach out:
 
 - GitHub: [@DucAnhishere](https://github.com/DucAnhishere)
-- Email: [your-email@example.com](mailto:your-email@example.com)
 
 ---
 Happy defect detecting!
