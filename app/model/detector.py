@@ -2,7 +2,7 @@ from ultralytics import YOLO
 import cv2
 import os
 
-model = YOLO("models/v5/best.pt")
+model = YOLO("models/v6/bestv6.pt")
 
 # Các class lỗi cần hiển thị
 VISIBLE_CLASSES = {"miss", "bridge", "lifted"}
