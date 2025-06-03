@@ -83,26 +83,60 @@ class StatusCard(QFrame):
         
         # Add shadow
         shadow = QGraphicsDropShadowEffect()
-        shadow.setBlurRadius(15)
+        shadow.setBlurRadius(8)
         shadow.setXOffset(0)
-        shadow.setYOffset(3)
-        shadow.setColor(QColor(0, 0, 0, 30))
+        shadow.setYOffset(1)
+        shadow.setColor(QColor(0, 0, 0, 15))
         self.setGraphicsEffect(shadow)
         
         layout = QVBoxLayout(self)
-        layout.setSpacing(8)
+        layout.setSpacing(2)  # Giảm spacing
+        layout.setContentsMargins(4, 4, 4, 4)  # Giảm margins
         
         # Title
         title_label = QLabel(title)
         title_label.setStyleSheet(AppStyles.get_status_card_title_style())
+        title_label.setAlignment(Qt.AlignCenter)
+        title_label.setWordWrap(True)
         layout.addWidget(title_label)
         
         # Value
         self.value_label = QLabel(value)
         self.value_label.setStyleSheet(AppStyles.get_status_card_value_style(color))
+        self.value_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.value_label)
         
     def update_value(self, value, color=None):
+        self.value_label.setText(str(value))
+        if color:
+            self.value_label.setStyleSheet(AppStyles.get_status_card_value_style(color))
+
+class MiniStatusCard(QFrame):
+    """Compact status card widget"""
+    def __init__(self, title, value, color="#4a86e8", parent=None):
+        super().__init__(parent)
+        self.setFixedSize(100, 95) 
+        self.setStyleSheet(AppStyles.get_status_card_style())
+        
+        # Layout chính
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(6, 8, 6, 6)  # Tăng padding top từ 6 lên 8
+        layout.setSpacing(3)  # Tăng spacing từ 2 lên 3
+        
+        # Title
+        title_label = QLabel(title)
+        title_label.setStyleSheet(AppStyles.get_status_card_title_style())
+        title_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(title_label)
+        
+        # Value
+        self.value_label = QLabel(value)
+        self.value_label.setStyleSheet(AppStyles.get_status_card_value_style(color))
+        self.value_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(self.value_label)
+        
+    def update_value(self, value, color=None):
+        """Update the value and optionally the color"""
         self.value_label.setText(str(value))
         if color:
             self.value_label.setStyleSheet(AppStyles.get_status_card_value_style(color))
@@ -266,15 +300,19 @@ class DefectDetectionApp(QMainWindow):
         # === Stats Cards Section ===
         stats_frame = QFrame()
         stats_layout = QHBoxLayout(stats_frame)
-        stats_layout.setSpacing(16)
+        stats_layout.setContentsMargins(0, 0, 0, 0)
+        stats_layout.setSpacing(8)  # Spacing nhỏ
         
-        self.total_defects_card = StatusCard("Total Defects", "0", "#e74c3c")
-        self.defect_types_card = StatusCard("Defect Types", "0", "#f39c12")
-        self.status_card = StatusCard("Status", "Ready", "#27ae60")
+        # Tạo cards mới với kích thước nhỏ
+        self.total_defects_card = MiniStatusCard("Defects", "0", "#dc3545")
+        self.defect_types_card = MiniStatusCard("Types", "0", "#fd7e14")
+        self.status_card = MiniStatusCard("Status", "Ready", "#28a745")
         
+        # Thêm cards vào layout
         stats_layout.addWidget(self.total_defects_card)
         stats_layout.addWidget(self.defect_types_card)
         stats_layout.addWidget(self.status_card)
+        stats_layout.addStretch()  # Đẩy về bên trái
         
         main_layout.addWidget(stats_frame)
         
@@ -527,9 +565,9 @@ class DefectDetectionApp(QMainWindow):
         self.last_captured_path = None
         self.current_raw_image = None
         
-        # Reset status cards
+        # Reset mini status cards
         self.total_defects_card.update_value("0", "#6c757d")
-        self.defect_types_card.update_value("0", "#6c757d")
+        self.defect_types_card.update_value("0", "#6c757d") 
         self.status_card.update_value("Ready", "#6c757d")
         
         # Reset indicator with proper sizing
@@ -537,12 +575,6 @@ class DefectDetectionApp(QMainWindow):
         self.result_indicator.setWordWrap(True)
         self.result_indicator.setMaximumHeight(120)
         self.result_indicator.setStyleSheet(AppStyles.get_result_indicator_styles()['waiting'])
-        
-        # Clear barcode status and reset to default
-        self.status_message.setText("🧹 Results cleared | 🔍 Scanner active")
-        
-        # Reset status message style to default if it was changed by barcode notification
-        self.status_message.setStyleSheet("")
         
         self.status_message.setText("🧹 Results cleared")
 

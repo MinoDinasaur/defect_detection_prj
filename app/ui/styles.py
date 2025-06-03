@@ -159,9 +159,10 @@ class AppStyles:
         return """
             QFrame {
                 background: white;
-                border: 1px solid #e0e6ed;
-                border-radius: 12px;
-                padding: 16px;
+                border: 1px solid #e1e5e9;
+                border-radius: 8px;
+                padding: 6px;
+                margin: 2px;
             }
         """
     
@@ -169,10 +170,11 @@ class AppStyles:
     def get_status_card_title_style():
         return """
             QLabel {
-                color: #666;
-                font-size: 14px;
+                color: #6c757d;
+                font-size: 11px;
                 font-weight: 500;
                 margin: 0;
+                padding: 1px 0;
             }
         """
     
@@ -181,9 +183,11 @@ class AppStyles:
         return f"""
             QLabel {{
                 color: {color};
-                font-size: 28px;
-                font-weight: bold;
+                font-size: 17px;
+                font-weight: 700;
                 margin: 0;
+                padding: 8px 0;
+                min-height: 30px;
             }}
         """
     
