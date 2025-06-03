@@ -1,3 +1,13 @@
-ultralytics
+PySide6
+numpy
 opencv-python
+scipy
 pypylon
+ultralytics
+matplotlib
+pandas
+torch
+torchvision
+barcode
+pillow
+pynput
