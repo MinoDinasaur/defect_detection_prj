@@ -132,7 +132,7 @@ class DetectionHistoryTab(QWidget):
         main_layout.addWidget(header_frame)
         
         # === Enhanced Filter Section ===
-        filter_group = QGroupBox("🔍 Filter & Search Options")
+        filter_group = QGroupBox("🔍 Filter and Search Options")
         filter_group.setStyleSheet(HistoryTabStyles.get_filter_group_style())
         
         filter_layout = QGridLayout(filter_group)
