@@ -28,18 +28,6 @@ Follow these steps to set up the project locally:
    pip install -r requirements.txt
    ```
 
-## Usage
-
-1. Prepare your dataset and ensure it's in the correct format.
-2. Train the defect detection model:
-   ```bash
-   python train_model.py --data_path path/to/your/dataset
-   ```
-3. Use the trained model for defect detection:
-   ```bash
-   python detect_defects.py --image_path path/to/your/image
-   ```
-
 ## Requirements
 
 - Python 3.x
