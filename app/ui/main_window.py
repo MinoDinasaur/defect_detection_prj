@@ -605,11 +605,8 @@ class DefectDetectionApp(QMainWindow):
         # Update status card
         self.status_card.update_value("Error", "#e74c3c")
         
-        # Truncate long error messages for display
-        display_message = message if len(message) <= 50 else message[:47] + "..."
-        
         # Enhanced error indicator with word wrap and size constraints
-        self.result_indicator.setText(f"⚠️ ERROR\n{display_message}")
+        self.result_indicator.setText(f"⚠️ ERROR\n{message}")
         self.result_indicator.setWordWrap(True)
         self.result_indicator.setMaximumHeight(120)
         self.result_indicator.setStyleSheet(AppStyles.get_result_indicator_styles()['error'])

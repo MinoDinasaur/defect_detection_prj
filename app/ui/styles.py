@@ -170,9 +170,9 @@ class AppStyles:
     def get_status_card_title_style():
         return """
             QLabel {
-                color: #6c757d;
-                font-size: 11px;
-                font-weight: 500;
+                color: #2c3e50;
+                font-size: 12px;
+                font-weight: 600;
                 margin: 0;
                 padding: 1px 0;
             }
