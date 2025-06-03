@@ -218,8 +218,8 @@ class AppStyles:
             QFrame {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                     stop:0 #667eea, stop:1 #764ba2);
-                border-radius: 16px;
-                padding: 20px;
+                border-radius: 8px;
+                padding: 12px 16px;
             }
         """
     
@@ -228,7 +228,7 @@ class AppStyles:
         return """
             QLabel {
                 color: white;
-                font-size: 28px;
+                font-size: 20px;
                 font-weight: bold;
                 margin: 0;
             }
@@ -239,7 +239,7 @@ class AppStyles:
         return """
             QLabel {
                 color: rgba(255, 255, 255, 0.8);
-                font-size: 16px;
+                font-size: 13px;
                 margin: 0;
             }
         """
@@ -511,8 +511,8 @@ class HistoryTabStyles:
             QFrame {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                     stop:0 #667eea, stop:1 #764ba2);
-                border-radius: 16px;
-                padding: 20px;
+                border-radius: 8px;
+                padding: 12px 16px;
             }
         """
     
@@ -521,7 +521,7 @@ class HistoryTabStyles:
         return """
             QLabel {
                 color: white;
-                font-size: 28px;
+                font-size: 20px;
                 font-weight: bold;
                 margin: 0;
             }
@@ -532,7 +532,7 @@ class HistoryTabStyles:
         return """
             QLabel {
                 color: rgba(255, 255, 255, 0.8);
-                font-size: 16px;
+                font-size: 13px;
                 margin: 0;
             }
         """
@@ -546,25 +546,26 @@ class HistoryTabStyles:
                 color: #2c3e50;
                 border: 2px solid #3498db;
                 border-radius: 12px;
-                margin-top: 20px;
-                padding: 20px;
+                margin-top: 10px;
+                padding: 10px;
                 background: rgba(255, 255, 255, 0.95);
             }
             QGroupBox::title {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                     stop:0 #3498db, stop:1 #2980b9);
                 color: white;
-                padding: 8px 20px;
+                padding: 6px 16px;
                 border-radius: 8px;
                 margin-left: 10px;
             }
             QDateEdit, QComboBox {
-                padding: 8px 12px;
+                padding: 6px 10px;
                 border: 2px solid #bdc3c7;
-                border-radius: 8px;
-                font-size: 14px;
+                border-radius: 6px;
+                font-size: 13px;
                 background: white;
-                min-width: 120px;
+                min-width: 100px;
+                max-height: 32px;
             }
             QDateEdit:focus, QComboBox:focus {
                 border: 2px solid #3498db;
@@ -574,14 +575,22 @@ class HistoryTabStyles:
                     stop:0 #3498db, stop:1 #2980b9);
                 color: white;
                 border: none;
-                border-radius: 8px;
-                padding: 10px 16px;
+                border-radius: 6px;
+                padding: 8px 12px;
                 font-weight: 600;
-                min-width: 100px;
+                min-width: 80px;
+                max-height: 32px;
+                font-size: 13px;
             }
             QPushButton:hover {
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 #4ea8eb, stop:1 #3990c9);
+            }
+            QLabel {
+                font-size: 13px;
+                font-weight: 500;
+                color: #2c3e50;
+                padding: 2px;
             }
         """
     
@@ -591,7 +600,10 @@ class HistoryTabStyles:
             QPushButton {
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 #95a5a6, stop:1 #7f8c8d);
-                min-width: 80px;
+                min-width: 70px;
+                max-height: 32px;
+                font-size: 12px;
+                padding: 6px 10px;
             }
             QPushButton:hover {
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
