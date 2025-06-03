@@ -94,6 +94,29 @@ class ImageViewDialog(QDialog):
             pixmap.save(file_name)
             QMessageBox.information(self, "Success", f"Image saved to {file_name}")
 
+class ClickableImageLabel(QLabel):
+    """Custom QLabel that emits signals on double-click"""
+    double_clicked = Signal(int, str)  # row_id, image_type
+    
+    def __init__(self, row_id, image_type, parent=None):
+        super().__init__(parent)
+        self.row_id = row_id
+        self.image_type = image_type
+        self.setAlignment(Qt.AlignCenter)
+        self.setStyleSheet(HistoryTabStyles.get_image_thumbnail_style())
+        
+        # Set cursor pointer để cho biết có thể click
+        self.setCursor(Qt.PointingHandCursor)
+        
+        # Add tooltip to indicate double-click functionality
+        self.setToolTip("Double-click to view full image")
+        
+    def mouseDoubleClickEvent(self, event):
+        """Handle double-click event"""
+        if event.button() == Qt.LeftButton:
+            self.double_clicked.emit(self.row_id, self.image_type)
+        super().mouseDoubleClickEvent(event)
+
 class DetectionHistoryTab(QWidget):
     """Enhanced tab for viewing detection history"""
     
@@ -217,12 +240,10 @@ class DetectionHistoryTab(QWidget):
             label.setStyleSheet(HistoryTabStyles.get_details_label_style())
             details_layout.addWidget(label)
         
-        # Enhanced action buttons
+        # Enhanced action buttons - CHỈ GIỮ LẠI 2 NÚT
         actions_layout = QHBoxLayout()
         
         button_configs = [
-            ("👁️ View Raw", self.view_raw_image, "#3498db"),
-            ("🔍 View Detection", self.view_detection_image, "#2ecc71"),
             ("📤 Export", self.export_detection, "#f39c12"),
             ("🗑️ Delete", self.delete_detection, "#e74c3c")
         ]
@@ -235,6 +256,9 @@ class DetectionHistoryTab(QWidget):
             btn.setStyleSheet(HistoryTabStyles.get_action_button_style(color))
             self.action_buttons.append(btn)
             actions_layout.addWidget(btn)
+        
+        # Add stretch to center the buttons
+        actions_layout.addStretch()
         
         details_layout.addLayout(actions_layout)
         details_layout.addStretch()
@@ -310,8 +334,8 @@ class DetectionHistoryTab(QWidget):
                 time_item.setToolTip(time_str)  # Full datetime in tooltip
                 self.history_table.setItem(i, 1, time_item)
                 
-                # Compact image thumbnails
-                for col, img_data in [(2, img_raw), (3, img_detect)]:
+                # Compact image thumbnails with double-click functionality
+                for col, img_data, img_type in [(2, img_raw, "img_raw"), (3, img_detect, "img_detect")]:
                     if img_data:
                         nparr = np.frombuffer(img_data, np.uint8)
                         img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
@@ -324,10 +348,13 @@ class DetectionHistoryTab(QWidget):
                         q_img = QImage(img.data, width, height, bytes_per_line, QImage.Format_RGB888)
                         pixmap = QPixmap.fromImage(q_img)
                         
-                        lbl = QLabel()
+                        # Create clickable image label
+                        lbl = ClickableImageLabel(rowid, img_type)
                         lbl.setPixmap(pixmap)
-                        lbl.setAlignment(Qt.AlignCenter)
-                        lbl.setStyleSheet(HistoryTabStyles.get_image_thumbnail_style())
+                        
+                        # Connect double-click signal
+                        lbl.double_clicked.connect(self.on_image_double_clicked)
+                        
                         self.history_table.setCellWidget(i, col, lbl)
                     else:
                         self.history_table.setItem(i, col, QTableWidgetItem("No image"))
@@ -365,6 +392,21 @@ class DetectionHistoryTab(QWidget):
         except Exception as e:
             QMessageBox.warning(self, "Database Error", f"Error loading detection history: {str(e)}")
     
+    @Slot(int, str)
+    def on_image_double_clicked(self, row_id, image_type):
+        """Handle double-click on image thumbnail"""
+        try:
+            img_data = self.get_image_data(row_id, image_type)
+            if img_data:
+                # Determine title based on image type
+                title = "Raw Image" if image_type == "img_raw" else "Detection Image"
+                dialog = ImageViewDialog(img_data, title, self)
+                dialog.exec_()
+            else:
+                QMessageBox.warning(self, "Error", "Could not load image data")
+        except Exception as e:
+            QMessageBox.warning(self, "Error", f"Error viewing image: {str(e)}")
+
     def on_selection_changed(self):
         """Handle selection change in the table"""
         selected_rows = self.history_table.selectedItems()
@@ -423,24 +465,6 @@ class DetectionHistoryTab(QWidget):
         except Exception as e:
             QMessageBox.warning(self, "Database Error", f"Error retrieving image: {str(e)}")
             return None
-    
-    def view_raw_image(self):
-        """View raw image in popup dialog"""
-        row_id = self.get_selected_row_id()
-        if row_id is not None:
-            img_data = self.get_image_data(row_id, "img_raw")
-            if img_data:
-                dialog = ImageViewDialog(img_data, "Raw Image", self)
-                dialog.exec_()
-    
-    def view_detection_image(self):
-        """View detection image in popup dialog"""
-        row_id = self.get_selected_row_id()
-        if row_id is not None:
-            img_data = self.get_image_data(row_id, "img_detect")
-            if img_data:
-                dialog = ImageViewDialog(img_data, "Detection Image", self)
-                dialog.exec_()
     
     def export_detection(self):
         """Export detection data to files"""

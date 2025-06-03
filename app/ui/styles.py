@@ -716,8 +716,14 @@ class HistoryTabStyles:
     @staticmethod
     def get_image_thumbnail_style():
         return """
-            border: 1px solid #dee2e6; 
-            border-radius: 3px;
+            QLabel {
+                border: 1px solid #dee2e6; 
+                border-radius: 3px;
+            }
+            QLabel:hover {
+                border: 2px solid #4a86e8;
+                background-color: rgba(74, 134, 232, 0.1);
+            }
         """
     
     @staticmethod
