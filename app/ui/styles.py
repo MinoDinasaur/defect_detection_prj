@@ -30,23 +30,26 @@ class AppStyles:
             }
             QTabWidget::pane {
                 border: 1px solid #dee2e6;
-                border-radius: 12px;
+                border-radius: 8px;
                 background: white;
-                margin-top: 5px;
+                margin-top: 0px;
             }
             QTabBar::tab {
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 #ffffff, stop:1 #f8f9fa);
                 border: 1px solid #dee2e6;
                 border-bottom: none;
-                border-top-left-radius: 8px;
-                border-top-right-radius: 8px;
-                padding: 12px 24px;
-                margin-right: 4px;
+                border-top-left-radius: 6px;
+                border-top-right-radius: 6px;
+                padding: 4px 12px;
+                margin-right: 1px;
                 font-weight: 500;
-                font-size: 14px;
+                font-size: 13px;
                 color: #495057;
-                min-width: 120px;
+                min-width: 80px;
+                max-width: 160px;
+                height: 24px;
+                max-height: 24px;
             }
             QTabBar::tab:selected {
                 background: white;
@@ -57,6 +60,10 @@ class AppStyles:
             QTabBar::tab:hover:!selected {
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 #f8f9fa, stop:1 #e9ecef);
+            }
+            QTabBar {
+                qproperty-drawBase: 0;
+                max-height: 26px;
             }
             QScrollArea {
                 border: none;
