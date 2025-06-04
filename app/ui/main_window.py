@@ -166,7 +166,7 @@ class DefectDetectionApp(QMainWindow):
     def init_UI(self):
         """Initialize the main UI"""
         # Window configuration
-        self.setWindowTitle("🔍 Defect Detection System v2.0")
+        self.setWindowTitle("🔍 Defect Detection System")
         self.setMinimumSize(1400, 900)
         self.showMaximized()
         
@@ -233,7 +233,7 @@ class DefectDetectionApp(QMainWindow):
         self.statusBar.addPermanentWidget(self.progress_bar)
         
         # Version info
-        version_label = QLabel("v2.0")
+        version_label = QLabel("Đại học Bách Khoa Hà Nội - 2025")
         version_label.setStyleSheet("color: #6c757d; font-size: 12px; padding: 4px 8px;")
         self.statusBar.addPermanentWidget(version_label)
 
