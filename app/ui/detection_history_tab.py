@@ -9,9 +9,11 @@ import sqlite3
 import cv2
 import numpy as np
 import os
+from datetime import datetime
 from sqlite_database.src.db_operations import (
     get_defect_types, delete_detection_from_db,
-    get_detections, get_image_data, get_detections_paginated
+    get_detections, get_image_data, get_detections_paginated,
+    get_detection_for_export  
 )
 from app.ui.styles import HistoryTabStyles
 
@@ -187,23 +189,33 @@ class DetectionHistoryTab(QWidget):
         self.defect_combo.addItem("All")
         filter_layout.addWidget(self.defect_combo, 0, 5)
         
-        # Quick date buttons
+        # QUICK BUTTONS HORIZONTAL LAYOUT
+        buttons_frame = QFrame()
+        buttons_layout = QHBoxLayout(buttons_frame)
+        buttons_layout.setSpacing(8)
+        
         quick_buttons = [
             ("Today", lambda: self.set_date_range(0)),
             ("Last Week", lambda: self.set_date_range(7)),
-            ("Last Month", lambda: self.set_date_range(30))
+            ("Last Month", lambda: self.set_date_range(30)),
+            ("All Records", lambda: self.set_all_dates())  
         ]
         
-        for i, (text, func) in enumerate(quick_buttons):
+        for text, func in quick_buttons:
             btn = QPushButton(text)
             btn.clicked.connect(func)
             btn.setStyleSheet(HistoryTabStyles.get_quick_filter_button_style())
-            filter_layout.addWidget(btn, 1, i)
+            buttons_layout.addWidget(btn)
         
         # Apply filter button
         self.apply_filter_btn = QPushButton("🔍 Apply Filter")
         self.apply_filter_btn.clicked.connect(self.refresh_data)
-        filter_layout.addWidget(self.apply_filter_btn, 1, 3, 1, 2)
+        buttons_layout.addWidget(self.apply_filter_btn)
+        
+        buttons_layout.addStretch()  # Push buttons to left
+        
+        # ADD BUTTONS FRAME TO GRID
+        filter_layout.addWidget(buttons_frame, 1, 0, 1, 6)  # Span full width
         
         main_layout.addWidget(filter_group)
         
@@ -488,15 +500,11 @@ class DetectionHistoryTab(QWidget):
                     else:
                         self.history_table.setItem(i, col, QTableWidgetItem("No image"))
                 
-                # Defects - HIỂN THỊ ĐẦY ĐỦ, KHÔNG CẮT
+                # Defects 
                 defect_display = defect if defect else "No defects"
                 
-                # BỎ LOGIC CẮT TEXT - hiển thị đầy đủ trong 690px column
-                # Không cần: if len(defect_display) > 25: defect_display = defect_display[:22] + "..."
-                
                 defect_item = QTableWidgetItem(defect_display)
-                defect_item.setToolTip(defect if defect else "No defects")  # Vẫn giữ tooltip
-                defect_item.setToolTip(defect if defect else "No defects")  # Full text trong tooltip
+                defect_item.setToolTip(defect if defect else "No defects")
                 
                 if defect and defect.lower() != "no defects":
                     defect_item.setBackground(QColor(255, 235, 238))
@@ -587,6 +595,14 @@ class DetectionHistoryTab(QWidget):
         self.current_page = 1  # Reset to first page when filter changes
         self.refresh_data()
     
+    # Thêm method mới
+    def set_all_dates(self):
+        """Show all records regardless of date"""
+        self.date_from.setDate(QDate(1900, 1, 1))  # Very old date
+        self.date_to.setDate(QDate(2099, 12, 31))   # Very future date
+        self.current_page = 1  # Reset to first page
+        self.refresh_data()
+    
     def delete_detection(self):
         """Delete selected detection from database and refresh current page"""
         database_id = self.get_selected_row_id()
@@ -658,6 +674,7 @@ class DetectionHistoryTab(QWidget):
         """Export detection data to files"""
         database_id = self.get_selected_row_id()
         if database_id is None:
+            QMessageBox.information(self, "No Selection", "Please select a detection record to export.")
             return
         
         # Get serial number for display
@@ -669,22 +686,16 @@ class DetectionHistoryTab(QWidget):
             serial_number = "Unknown"
             
         try:
-            conn = sqlite3.connect('sqlite_database/db/detections.db')
-            cursor = conn.cursor()
+            # SỬ DỤNG FUNCTION MỚI TỪ DB_OPERATIONS
+            detection_data = get_detection_for_export(database_id)
             
-            cursor.execute(
-                "SELECT time, img_raw, img_detect, defect, barcode FROM detections WHERE rowid = ?", 
-                (database_id,)  # Use real database ID
-            )
-            result = cursor.fetchone()
-            conn.close()
-            
-            if not result:
+            if not detection_data:
                 QMessageBox.warning(self, "Error", f"Detection record not found (DB ID: {database_id})")
                 return
                 
-            time_str, img_raw, img_detect, defect, barcode = result
+            time_str, img_raw, img_detect, defect, barcode = detection_data
             
+            # Chọn thư mục export
             export_dir = QFileDialog.getExistingDirectory(
                 self, "Select Directory for Export", "",
                 QFileDialog.ShowDirsOnly | QFileDialog.DontResolveSymlinks
@@ -693,29 +704,56 @@ class DetectionHistoryTab(QWidget):
             if not export_dir:
                 return
                 
+            # Tạo tên file an toàn
             safe_time = time_str.replace(":", "-").replace(" ", "_")
             filename_base = f"detection_serial_{serial_number}_db_{database_id}_{safe_time}"
             
+            # Export images
+            exported_files = []
+            
             if img_raw:
-                self.save_image_data(img_raw, os.path.join(export_dir, f"{filename_base}_raw.png"))
+                raw_path = os.path.join(export_dir, f"{filename_base}_raw.png")
+                self.save_image_data(img_raw, raw_path)
+                exported_files.append(f"{filename_base}_raw.png")
                 
             if img_detect:
-                self.save_image_data(img_detect, os.path.join(export_dir, f"{filename_base}_detect.png"))
+                detect_path = os.path.join(export_dir, f"{filename_base}_detect.png")
+                self.save_image_data(img_detect, detect_path)
+                exported_files.append(f"{filename_base}_detect.png")
                 
-            with open(os.path.join(export_dir, f"{filename_base}_info.txt"), 'w') as f:
+            # Export info file
+            info_path = os.path.join(export_dir, f"{filename_base}_info.txt")
+            with open(info_path, 'w', encoding='utf-8') as f:
+                f.write(f"Detection Export Report\n")
+                f.write(f"=" * 50 + "\n\n")
                 f.write(f"Serial Number: #{serial_number}\n")
                 f.write(f"Database ID: {database_id}\n")
-                f.write(f"Time: {time_str}\n")
-                f.write(f"Defects: {defect}\n")
-                f.write(f"Barcode: {barcode}\n")
+                f.write(f"Timestamp: {time_str}\n")
+                f.write(f"Defects: {defect or 'No defects'}\n")
+                f.write(f"Barcode: {barcode or 'No barcode'}\n\n")
+                f.write(f"Exported Files:\n")
+                for file in exported_files:
+                    f.write(f"- {file}\n")
+                f.write(f"\nExport Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
             
+            exported_files.append(f"{filename_base}_info.txt")
+            
+            # Hiển thị thông báo thành công
+            files_list = "\n".join([f"• {file}" for file in exported_files])
             QMessageBox.information(
                 self, "Export Complete", 
-                f"Detection #{serial_number} exported successfully to {export_dir}"
+                f"Detection #{serial_number} exported successfully!\n\n"
+                f"Location: {export_dir}\n\n"
+                f"Files created:\n{files_list}"
             )
+            
+            # Cập nhật status
+            if hasattr(self.parent, 'status_message'):
+                self.parent.status_message.setText(f"📤 Detection #{serial_number} exported to {export_dir}")
             
         except Exception as e:
             QMessageBox.warning(self, "Export Error", f"Error exporting detection: {str(e)}")
+            print(f"Export error details: {e}")
     
     def save_image_data(self, img_data, filepath):
         """Save image data to file"""
@@ -803,38 +841,3 @@ class DetectionHistoryTab(QWidget):
                 
         except Exception as e:
             print(f"Error populating defect types: {e}")
-    
-    def delete_detection(self):
-        """Delete selected detection from database and refresh current page"""
-        database_id = self.get_selected_row_id()
-        if database_id is None:
-            return
-        
-        # Get serial number for display
-        selected_items = self.history_table.selectedItems()
-        if selected_items:
-            row = selected_items[0].row()
-            serial_number = self.history_table.item(row, 0).text()
-        else:
-            serial_number = "Unknown"
-            
-        reply = QMessageBox.question(
-            self, "Confirm Deletion",
-            f"Are you sure you want to delete detection #{serial_number}?\n\n(Database ID: {database_id})",
-            QMessageBox.Yes | QMessageBox.No, QMessageBox.No
-        )
-        
-        if reply == QMessageBox.Yes:
-            try:
-                delete_detection_from_db(database_id)  # Use real database ID
-                
-                if hasattr(self.parent, 'status_message'):
-                    self.parent.status_message.setText(f"🗑️ Detection #{serial_number} deleted (DB ID: {database_id})")
-                
-                # Check if current page becomes empty after deletion
-                if self.history_table.rowCount() == 1 and self.current_page > 1:
-                    self.current_page -= 1  # Go to previous page if current page becomes empty
-                
-                self.refresh_data()
-            except Exception as e:
-                QMessageBox.warning(self, "Delete Error", f"Error deleting detection: {str(e)}")

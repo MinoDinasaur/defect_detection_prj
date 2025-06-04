@@ -42,33 +42,33 @@ def reset_scanned_barcode():
 
 #Helper function
 def execute_query(query, params=None, fetch=False):
-    """
-    Execute a query on the database.
-
-    Args:
-        query (str): SQL query to execute.
-        params (tuple): Parameters for the query.
-        fetch (bool): Whether to fetch results.
-
-    Returns:
-        list: Query results if fetch is True, otherwise None.
-    """
+    conn = None
+    cursor = None
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
+        
         if params:
             cursor.execute(query, params)
         else:
             cursor.execute(query)
+            
         if fetch:
             results = cursor.fetchall()
-            conn.close()
             return results
-        conn.commit()
-        conn.close()
-    except Exception as e:
-        print(f"Database query error: {e}")
-    return None
+        else:
+            conn.commit()
+            return True
+    except sqlite3.Error as e:
+        print(f"Database error: {e}")
+        if conn:
+            conn.rollback()  # Rollback transaction
+        return None
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 def save_detection_to_db(img_raw, img_detect, defect, barcode=None):
     """
@@ -340,3 +340,37 @@ def delete_detection_from_db(row_id):
         print(f"Detection #{row_id} deleted successfully.")
     except Exception as e:
         print(f"Error deleting detection #{row_id}: {str(e)}")
+
+def get_detection_for_export(row_id):
+    """
+    Get detection data for export by row ID.
+    
+    Args:
+        row_id (int): The row ID of the detection record.
+    
+    Returns:
+        tuple: (time_str, img_raw, img_detect, defect, barcode) or None if not found
+    """
+    query = "SELECT time, img_raw, img_detect, defect, barcode FROM detections WHERE rowid = ?"
+    result = execute_query(query, (row_id,), fetch=True)
+    
+    if result and len(result) > 0:
+        return result[0]  # Return the first (and should be only) result
+    return None
+
+def get_detection_summary(row_id):
+    """
+    Get detection summary data (without large binary data) for display.
+    
+    Args:
+        row_id (int): The row ID of the detection record.
+    
+    Returns:
+        tuple: (time_str, defect, barcode) or None if not found
+    """
+    query = "SELECT time, defect, barcode FROM detections WHERE rowid = ?"
+    result = execute_query(query, (row_id,), fetch=True)
+    
+    if result and len(result) > 0:
+        return result[0]
+    return None

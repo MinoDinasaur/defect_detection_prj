@@ -628,20 +628,29 @@ class DefectDetectionApp(QMainWindow):
                     self.lblImage.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
 
     def closeEvent(self, event):
-        """Handle application close event"""
         try:
-            # Stop barcode scanner thread
             if hasattr(self, 'barcode_thread') and self.barcode_thread.isRunning():
-                self.barcode_thread.terminate()
-                self.barcode_thread.wait(3000)  # Wait up to 3 seconds
-                print("🔍 Barcode scanner stopped")
-            
-            # Stop other threads if running
-            if hasattr(self, 'image_thread') and self.image_thread.isRunning():
-                self.image_thread.terminate()
-                self.image_thread.wait(1000)
+                print("🔍 Stopping barcode scanner...")
                 
+                # Request thread to stop gracefully
+                self.barcode_thread.requestInterruption()
+                
+                # Wait for thread to finish naturally
+                if not self.barcode_thread.wait(2000):  # Wait 2 seconds
+                    print("Thread didn't stop gracefully, terminating...")
+                    self.barcode_thread.terminate()
+                    if not self.barcode_thread.wait(1000):  # Wait 1 more second
+                        print("Force killing thread")
+                
+                print("Barcode scanner stopped")
+            
+            # Stop other threads
+            if hasattr(self, 'image_thread') and self.image_thread.isRunning():
+                self.image_thread.requestInterruption()
+                if not self.image_thread.wait(1000):
+                    self.image_thread.terminate()
+                    
         except Exception as e:
             print(f"Error during cleanup: {e}")
-        
-        event.accept()
+        finally:
+            event.accept()
