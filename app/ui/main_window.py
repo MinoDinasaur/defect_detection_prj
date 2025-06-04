@@ -265,15 +265,7 @@ class DefectDetectionApp(QMainWindow):
 
     def setup_live_detection_tab(self):
         """Setup the enhanced UI for live detection tab"""
-        # Main scroll area
-        scroll = QScrollArea()
-        scroll_widget = QWidget()
-        scroll.setWidget(scroll_widget)
-        scroll.setWidgetResizable(True)
-        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-        
-        main_layout = QVBoxLayout(scroll_widget)
+        main_layout = QVBoxLayout(self.live_detection_tab)
         main_layout.setContentsMargins(24, 24, 24, 24)
         main_layout.setSpacing(20)
         
@@ -301,7 +293,7 @@ class DefectDetectionApp(QMainWindow):
         stats_frame = QFrame()
         stats_layout = QHBoxLayout(stats_frame)
         stats_layout.setContentsMargins(0, 0, 0, 0)
-        stats_layout.setSpacing(8)  # Spacing nhỏ
+        stats_layout.setSpacing(8)
         
         # Tạo cards mới với kích thước nhỏ
         self.total_defects_card = MiniStatusCard("Defects", "0", "#dc3545")
@@ -312,7 +304,7 @@ class DefectDetectionApp(QMainWindow):
         stats_layout.addWidget(self.total_defects_card)
         stats_layout.addWidget(self.defect_types_card)
         stats_layout.addWidget(self.status_card)
-        stats_layout.addStretch()  # Đẩy về bên trái
+        stats_layout.addStretch()
         
         main_layout.addWidget(stats_frame)
         
@@ -413,10 +405,11 @@ class DefectDetectionApp(QMainWindow):
         
         main_layout.addWidget(controls_frame)
         
-        # Set the scroll area as the tab's main widget
-        tab_layout = QVBoxLayout(self.live_detection_tab)
-        tab_layout.setContentsMargins(0, 0, 0, 0)
-        tab_layout.addWidget(scroll)
+        # BỎ PHẦN SCROLL AREA WRAPPER - sử dụng layout trực tiếp trên tab
+        # Không cần:
+        # tab_layout = QVBoxLayout(self.live_detection_tab)
+        # tab_layout.setContentsMargins(0, 0, 0, 0)
+        # tab_layout.addWidget(scroll)
 
     def update_status_bar(self):
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
