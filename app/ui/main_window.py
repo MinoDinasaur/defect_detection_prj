@@ -636,12 +636,11 @@ class DefectDetectionApp(QMainWindow):
                 self.barcode_thread.requestInterruption()
                 
                 # Wait for thread to finish naturally
-                if not self.barcode_thread.wait(2000):  # Wait 2 seconds
+                if not self.barcode_thread.wait(1000):  
                     print("Thread didn't stop gracefully, terminating...")
                     self.barcode_thread.terminate()
-                    if not self.barcode_thread.wait(1000):  # Wait 1 more second
-                        print("Force killing thread")
-                
+                    if not self.barcode_thread.wait(500):  # Wait 1 more second
+                        print("Force killing thread")        
                 print("Barcode scanner stopped")
             
             # Stop other threads

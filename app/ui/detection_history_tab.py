@@ -237,27 +237,27 @@ class DetectionHistoryTab(QWidget):
         
         header = self.history_table.horizontalHeader()
         
-        # Cột # - cố định nhỏ (40px)
+        # Cột STT
         header.setSectionResizeMode(0, QHeaderView.Fixed)
         self.history_table.setColumnWidth(0, 40)
         
-        # Cột Date/Time - giữ nguyên (100px)
+        # Cột Date/Time
         header.setSectionResizeMode(1, QHeaderView.Fixed)
         self.history_table.setColumnWidth(1, 100)
         
-        # Cột Raw Image - giữ nguyên (100px)
+        # Cột Raw Image 
         header.setSectionResizeMode(2, QHeaderView.Fixed)
         self.history_table.setColumnWidth(2, 140)
         
-        # Cột Detection Image - giữ nguyên (100px)
+        # Cột Detection Image
         header.setSectionResizeMode(3, QHeaderView.Fixed)
         self.history_table.setColumnWidth(3, 140)
         
-        # Cột Defects - CỐ ĐỊNH 180PX thay vì stretch
+        # Cột Defects 
         header.setSectionResizeMode(4, QHeaderView.Fixed)
         self.history_table.setColumnWidth(4, 690)
         
-        # Cột Barcode - stretch để chiếm phần còn lại
+        # Cột Barcode 
         header.setSectionResizeMode(5, QHeaderView.Stretch)
         
         self.history_table.verticalHeader().setVisible(False)
