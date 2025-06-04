@@ -619,29 +619,52 @@ class HistoryTabStyles:
                 border-radius: 12px;
                 background-color: white;
                 gridline-color: #ecf0f1;
-                font-size: 14px;
+                font-size: 13px;
                 selection-background-color: #e8f4fd;
+                outline: none;
             }
             QHeaderView::section {
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 #34495e, stop:1 #2c3e50);
                 color: white;
                 border: 1px solid #2c3e50;
-                padding: 12px;
+                padding: 10px 8px;
                 font-weight: bold;
-                font-size: 14px;
+                font-size: 12px;
+                text-align: center;
+            }
+            QHeaderView::section:hover {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #3d566e, stop:1 #34495e);
             }
             QTableWidget::item {
-                padding: 12px;
+                padding: 8px 6px;
                 border-bottom: 1px solid #ecf0f1;
+                border-right: 1px solid #f8f9fa;
+                word-wrap: break-word;
             }
             QTableWidget::item:selected {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                     stop:0 #e8f4fd, stop:1 #d4edda);
                 color: #2c3e50;
+                border: 1px solid #4a86e8;
             }
             QTableWidget::item:hover {
                 background-color: #f8f9fa;
+                border: 1px solid #dee2e6;
+            }
+            QScrollBar:vertical {
+                background: #f8f9fa;
+                width: 12px;
+                border-radius: 6px;
+            }
+            QScrollBar::handle:vertical {
+                background: #dee2e6;
+                border-radius: 6px;
+                min-height: 20px;
+            }
+            QScrollBar::handle:vertical:hover {
+                background: #adb5bd;
             }
         """
     
@@ -652,7 +675,8 @@ class HistoryTabStyles:
                 background: white;
                 border: 2px solid #e0e6ed;
                 border-radius: 12px;
-                padding: 20px;
+                padding: 8px;
+                margin: 4px;
             }
         """
     
@@ -660,10 +684,12 @@ class HistoryTabStyles:
     def get_details_title_style():
         return """
             QLabel {
-                font-size: 18px;
+                font-size: 16px;
                 font-weight: bold;
                 color: #2c3e50;
-                margin-bottom: 10px;
+                margin-bottom: 8px;
+                padding: 4px 0;
+                border-bottom: 1px solid #e9ecef;
             }
         """
     
@@ -671,12 +697,14 @@ class HistoryTabStyles:
     def get_details_label_style():
         return """
             QLabel {
-                font-size: 14px;
+                font-size: 13px;
                 color: #34495e;
-                padding: 6px;
+                padding: 8px 12px;
                 background: #f8f9fa;
                 border-radius: 6px;
                 margin: 2px 0;
+                border-left: 3px solid #dee2e6;
+                line-height: 1.4;
             }
         """
     
@@ -699,17 +727,23 @@ class HistoryTabStyles:
                 color: white;
                 border: none;
                 border-radius: 8px;
-                padding: 10px 16px;
+                padding: 12px 16px;
                 font-weight: 600;
-                min-width: 120px;
+                font-size: 13px;
+                min-width: 100%;
             }}
             QPushButton:hover {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 {colors['light']}, stop:1 {color});
+                transform: translateY(-1px);
+            }}
+            QPushButton:pressed {{
+                transform: translateY(1px);
             }}
             QPushButton:disabled {{
                 background: #bdc3c7;
                 color: #7f8c8d;
+                transform: none;
             }}
         """
     
@@ -731,34 +765,153 @@ class HistoryTabStyles:
         return {
             'failed': """
                 QLabel {
-                    font-size: 11px;
-                    color: white;
-                    padding: 4px 8px;
-                    background: #dc3545;
-                    border-radius: 4px;
-                    margin: 2px;
-                    font-weight: bold;
+                    font-size: 13px;
+                    color: #721c24;
+                    padding: 8px 12px;
+                    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                        stop:0 #f8d7da, stop:1 #f5c6cb);
+                    border-radius: 6px;
+                    margin: 2px 0;
+                    border-left: 3px solid #dc3545;
+                    font-weight: 600;
+                    line-height: 1.4;
                 }
             """,
             'passed': """
                 QLabel {
-                    font-size: 11px;
-                    color: white;
-                    padding: 4px 8px;
-                    background: #28a745;
-                    border-radius: 4px;
-                    margin: 2px;
-                    font-weight: bold;
+                    font-size: 13px;
+                    color: #155724;
+                    padding: 8px 12px;
+                    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                        stop:0 #d4edda, stop:1 #c3e6cb);
+                    border-radius: 6px;
+                    margin: 2px 0;
+                    border-left: 3px solid #28a745;
+                    font-weight: 600;
+                    line-height: 1.4;
                 }
             """,
             'none_selected': """
                 QLabel {
-                    font-size: 11px;
+                    font-size: 13px;
                     color: #495057;
-                    padding: 4px 8px;
-                    background: #f8f9fa;
-                    border-radius: 4px;
-                    margin: 2px;
+                    padding: 8px 12px;
+                    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                        stop:0 #f8f9fa, stop:1 #e9ecef);
+                    border-radius: 6px;
+                    margin: 2px 0;
+                    border-left: 3px solid #dee2e6;
+                    line-height: 1.4;
                 }
             """
         }
+    
+    @staticmethod
+    def get_pagination_frame_style():
+        return """
+            QFrame {
+                background: white;
+                border: 1px solid #e0e6ed;
+                border-radius: 8px;
+                padding: 12px;
+                margin: 4px;
+            }
+        """
+    
+    @staticmethod
+    def get_pagination_records_info_style():
+        return """
+            QLabel {
+                color: #6c757d;
+                font-size: 13px;
+                font-weight: 500;
+                padding: 4px;
+            }
+        """
+    
+    @staticmethod
+    def get_pagination_page_info_style():
+        return """
+            QLabel {
+                font-weight: 600;
+                color: #2c3e50;
+                padding: 0 16px;
+                font-size: 14px;
+                min-width: 100px;
+                text-align: center;
+            }
+        """
+    
+    @staticmethod
+    def get_pagination_button_style():
+        return """
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #f8f9fa, stop:1 #e9ecef);
+                border: 1px solid #dee2e6;
+                border-radius: 6px;
+                padding: 8px 12px;
+                font-size: 12px;
+                font-weight: 500;
+                min-width: 70px;
+                max-height: 36px;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #e9ecef, stop:1 #dee2e6);
+                border: 1px solid #adb5bd;
+                transform: translateY(-1px);
+            }
+            QPushButton:pressed {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #dee2e6, stop:1 #ced4da);
+                transform: translateY(1px);
+            }
+            QPushButton:disabled {
+                background: #f8f9fa;
+                color: #6c757d;
+                border: 1px solid #dee2e6;
+            }
+        """
+    
+    @staticmethod
+    def get_pagination_combo_style():
+        return """
+            QComboBox {
+                padding: 4px 8px;
+                border: 1px solid #dee2e6;
+                border-radius: 4px;
+                font-size: 12px;
+                min-width: 50px;
+                max-height: 28px;
+                background: white;
+            }
+            QComboBox:hover {
+                border: 1px solid #adb5bd;
+            }
+            QComboBox:focus {
+                border: 2px solid #4a86e8;
+            }
+            QComboBox::drop-down {
+                border: none;
+                width: 20px;
+            }
+            QComboBox::down-arrow {
+                image: none;
+                border-left: 4px solid transparent;
+                border-right: 4px solid transparent;
+                border-top: 4px solid #6c757d;
+                margin-right: 6px;
+            }
+        """
+    
+    @staticmethod
+    def get_pagination_label_style():
+        return """
+            QLabel {
+                color: #495057;
+                font-size: 12px;
+                font-weight: 500;
+                padding: 2px 4px;
+            }
+        """

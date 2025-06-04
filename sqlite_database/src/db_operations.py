@@ -128,23 +128,24 @@ def save_to_db(img_raw_path, img_with_boxes, result_obj):
         with open(detected_path, "rb") as detected_file:
             img_detect = detected_file.read()
 
-        # Extract defect information
+        # Extract defect information - CHỈ LẤY TÊN, KHÔNG CÓ CONFIDENCE
         classes = result_obj.names
         boxes = result_obj.boxes
         labels = boxes.cls.cpu().tolist() if boxes is not None else []
-        confidences = boxes.conf.cpu().tolist() if boxes is not None else []
 
         # Filter out OK class
-        defect_indices = [(i, cls_id) for i, cls_id in enumerate(labels) if classes[int(cls_id)].lower() != "ok"]
+        defect_indices = [cls_id for cls_id in labels if classes[int(cls_id)].lower() != "ok"]
 
-        # Save each defect to the database
-        for i, cls_id in defect_indices:
-            defect_name = classes[int(cls_id)]
-            confidence = confidences[i] * 100
-            defect_info = f"{defect_name} ({confidence:.2f}%)"
+        if defect_indices:
+            # Get unique defect names only (no confidence scores)
+            defect_names = [classes[int(cls_id)] for cls_id in defect_indices]
+            unique_defects = list(set(defect_names))  # Remove duplicates
+            defect_info = ", ".join(sorted(unique_defects))  # Sort for consistency
+        else:
+            defect_info = "No defects"
 
-            # Use the scanned barcode
-            save_detection_to_db(img_raw, img_detect, defect_info, barcode=scanned_barcode)
+        # Save to database
+        save_detection_to_db(img_raw, img_detect, defect_info, barcode=scanned_barcode)
 
         print("Data saved to database successfully.")
         
@@ -176,15 +177,17 @@ def update_detection_in_db(row_id, img_with_boxes, result_obj):
         classes = result_obj.names
         boxes = result_obj.boxes
         labels = boxes.cls.cpu().tolist() if boxes is not None else []
-        confidences = boxes.conf.cpu().tolist() if boxes is not None else []
 
         # Filter out OK class
-        defect_indices = [(i, cls_id) for i, cls_id in enumerate(labels) if classes[int(cls_id)].lower() != "ok"]
-        defects = [
-            f"{classes[int(cls_id)]} ({confidences[i] * 100:.2f}%)"
-            for i, cls_id in defect_indices
-        ]
-        defect_info = ", ".join(defects) if defects else "No defects"
+        defect_indices = [cls_id for cls_id in labels if classes[int(cls_id)].lower() != "ok"]
+        
+        if defect_indices:
+            # Get unique defect names only (no confidence scores)
+            defect_names = [classes[int(cls_id)] for cls_id in defect_indices]
+            unique_defects = list(set(defect_names))  # Remove duplicates
+            defect_info = ", ".join(sorted(unique_defects))  # Sort for consistency
+        else:
+            defect_info = "No defects"
 
         # Update the database record
         query = """
@@ -261,6 +264,53 @@ def get_detections(date_from, date_to, defect_filter=None):
 
     query += " ORDER BY time DESC"
     return execute_query(query, params, fetch=True)
+
+def get_detections_paginated(date_from, date_to, defect_filter=None, page=1, page_size=10):
+    """
+    Fetch detection records with pagination.
+    
+    Args:
+        date_from (str): Start date in 'YYYY-MM-DD' format.
+        date_to (str): End date in 'YYYY-MM-DD' format.
+        defect_filter (str): Filter for defect type (optional).
+        page (int): Page number (1-based).
+        page_size (int): Number of records per page.
+    
+    Returns:
+        tuple: (records, total_count)
+    """
+    # Base query
+    base_query = "SELECT rowid, time, img_raw, img_detect, defect, barcode FROM detections WHERE time BETWEEN ? AND ?"
+    count_query = "SELECT COUNT(*) FROM detections WHERE time BETWEEN ? AND ?"
+    
+    params = [date_from, date_to]
+    
+    # Add defect filter if specified
+    if defect_filter and defect_filter != "All":
+        filter_condition = ""
+        if defect_filter == "No defects":
+            filter_condition = " AND defect = ?"
+            params.append("No defects")
+        else:
+            filter_condition = " AND defect LIKE ?"
+            params.append(f"%{defect_filter}%")
+        
+        base_query += filter_condition
+        count_query += filter_condition
+    
+    # Get total count
+    total_result = execute_query(count_query, params, fetch=True)
+    total_count = total_result[0][0] if total_result else 0
+    
+    # Add pagination to main query
+    base_query += " ORDER BY time DESC LIMIT ? OFFSET ?"
+    offset = (page - 1) * page_size
+    params.extend([page_size, offset])
+    
+    # Get paginated records
+    records = execute_query(base_query, params, fetch=True) or []
+    
+    return records, total_count
 
 def get_image_data(row_id, image_type):
     """

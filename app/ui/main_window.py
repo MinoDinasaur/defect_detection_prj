@@ -515,11 +515,12 @@ class DefectDetectionApp(QMainWindow):
                     defect_name = classes[int(cls_id)]
                     confidence = confidences[i] * 100
                     
-                    item_text = f"🔴 Defect #{idx+1}: {defect_name}\n   Confidence: {confidence:.1f}%"
+                    # CHỈ HIỂN THỊ TÊN DEFECT, KHÔNG CÓ CONFIDENCE
+                    item_text = f"🔴 Defect #{idx+1}: {defect_name}"
                     item = QListWidgetItem(item_text)
                     item.setFont(QFont("Segoe UI", 13))
                     
-                    # Enhanced color coding
+                    # Enhanced color coding based on confidence (internally - không hiển thị)
                     if confidence > 90:
                         item.setBackground(QColor(255, 182, 193))  # Light pink
                     elif confidence > 75:
