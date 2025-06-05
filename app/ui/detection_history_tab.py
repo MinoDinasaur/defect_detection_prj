@@ -139,172 +139,158 @@ class DetectionHistoryTab(QWidget):
     def initUI(self):
         """Initialize enhanced UI components with pagination"""
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(24, 24, 24, 24)
-        main_layout.setSpacing(20)
+        main_layout.setContentsMargins(16, 16, 16, 16)  # Giảm từ 24 xuống 16
+        main_layout.setSpacing(12)  # Giảm từ 20 xuống 12
         
-        # === Enhanced Header ===
+        # === COMPACT Header ===
         header_frame = QFrame()
-        header_frame.setStyleSheet(HistoryTabStyles.get_header_frame_style())
+        header_frame.setStyleSheet(HistoryTabStyles.get_compact_header_frame_style())
         
         header_layout = QHBoxLayout(header_frame)
+        header_layout.setContentsMargins(12, 8, 12, 8)  # Giảm padding
         
-        title_label = QLabel("📊 Detection History & Analytics")
-        title_label.setStyleSheet(HistoryTabStyles.get_header_title_style())
+        # Compact title - chỉ 1 dòng
+        title_label = QLabel("📊 Detection History")  # Rút gọn title
+        title_label.setStyleSheet(HistoryTabStyles.get_compact_header_title_style())
         
-        subtitle_label = QLabel("View and analyze past quality control results")
-        subtitle_label.setStyleSheet(HistoryTabStyles.get_header_subtitle_style())
-        
-        title_layout = QVBoxLayout()
-        title_layout.addWidget(title_label)
-        title_layout.addWidget(subtitle_label)
-        
-        header_layout.addLayout(title_layout)
+        header_layout.addWidget(title_label)
         header_layout.addStretch()
         
         main_layout.addWidget(header_frame)
         
-        # === Enhanced Filter Section ===
-        filter_group = QGroupBox("🔍 Filter and Search Options")
-        filter_group.setStyleSheet(HistoryTabStyles.get_filter_group_style())
+        # === COMPACT Filter Section ===
+        filter_group = QGroupBox("🔍 Filters")  # Rút gọn title
+        filter_group.setStyleSheet(HistoryTabStyles.get_compact_filter_group_style())
         
-        filter_layout = QGridLayout(filter_group)
-        filter_layout.setSpacing(16)
+        # SINGLE ROW layout cho tất cả controls
+        filter_layout = QHBoxLayout(filter_group)
+        filter_layout.setContentsMargins(8, 6, 8, 6)  # Giảm margins
+        filter_layout.setSpacing(8)  # Giảm spacing
         
-        # Enhanced date controls
-        filter_layout.addWidget(QLabel("📅 Date Range:"), 0, 0)
+        # Date controls - compact
+        filter_layout.addWidget(QLabel("📅"))
         self.date_from = QDateEdit()
         self.date_from.setCalendarPopup(True)
         self.date_from.setDate(QDate.currentDate().addDays(-7))
-        filter_layout.addWidget(self.date_from, 0, 1)
+        self.date_from.setDisplayFormat("dd/MM")  # Format ngắn hơn
+        filter_layout.addWidget(self.date_from)
         
-        filter_layout.addWidget(QLabel("to"), 0, 2)
+        filter_layout.addWidget(QLabel("→"))
         self.date_to = QDateEdit()
         self.date_to.setCalendarPopup(True)
         self.date_to.setDate(QDate.currentDate())
-        filter_layout.addWidget(self.date_to, 0, 3)
+        self.date_to.setDisplayFormat("dd/MM")  # Format ngắn hơn
+        filter_layout.addWidget(self.date_to)
         
-        # Enhanced defect filter
-        filter_layout.addWidget(QLabel("🔧 Defect Type:"), 0, 4)
+        # Defect filter - compact
+        filter_layout.addWidget(QLabel("🔧"))
         self.defect_combo = QComboBox()
         self.defect_combo.addItem("All")
-        filter_layout.addWidget(self.defect_combo, 0, 5)
+        filter_layout.addWidget(self.defect_combo)
         
-        # QUICK BUTTONS HORIZONTAL LAYOUT
-        buttons_frame = QFrame()
-        buttons_layout = QHBoxLayout(buttons_frame)
-        buttons_layout.setSpacing(8)
-        
+        # Quick buttons - compact
         quick_buttons = [
             ("Today", lambda: self.set_date_range(0)),
-            ("Last Week", lambda: self.set_date_range(7)),
-            ("Last Month", lambda: self.set_date_range(30)),
-            ("All Records", lambda: self.set_all_dates())  
+            ("Week", lambda: self.set_date_range(7)),  # Rút gọn text
+            ("Month", lambda: self.set_date_range(30)),
+            ("All", lambda: self.set_all_dates())  # Rút gọn text
         ]
         
         for text, func in quick_buttons:
             btn = QPushButton(text)
             btn.clicked.connect(func)
-            btn.setStyleSheet(HistoryTabStyles.get_quick_filter_button_style())
-            buttons_layout.addWidget(btn)
+            btn.setStyleSheet(HistoryTabStyles.get_compact_quick_filter_button_style())
+            filter_layout.addWidget(btn)
         
         # Apply filter button
-        self.apply_filter_btn = QPushButton("🔍 Apply Filter")
+        self.apply_filter_btn = QPushButton("Apply")  # Rút gọn text
         self.apply_filter_btn.clicked.connect(self.refresh_data)
-        buttons_layout.addWidget(self.apply_filter_btn)
+        filter_layout.addWidget(self.apply_filter_btn)
         
-        buttons_layout.addStretch()  # Push buttons to left
-        
-        # ADD BUTTONS FRAME TO GRID
-        filter_layout.addWidget(buttons_frame, 1, 0, 1, 6)  # Span full width
+        filter_layout.addStretch()  # Push everything to left
         
         main_layout.addWidget(filter_group)
         
-        # === MAIN CONTENT: HORIZONTAL SPLITTER ===
-        # Thay đổi từ Vertical thành Horizontal splitter
+        # === MAIN CONTENT với nhiều space hơn cho table ===
         main_content_splitter = QSplitter(Qt.Horizontal)
-        main_content_splitter.setChildrenCollapsible(False)  # Ngăn không cho collapse
+        main_content_splitter.setChildrenCollapsible(False)
         
-        # === LEFT SIDE: Table và Pagination (70%) ===
+        # === LEFT SIDE: Table và Pagination ===
         left_container = QWidget()
         left_layout = QVBoxLayout(left_container)
-        left_layout.setContentsMargins(0, 0, 10, 0)  # Margin phải để tạo khoảng cách
-        left_layout.setSpacing(12)
+        left_layout.setContentsMargins(0, 0, 10, 0)
+        left_layout.setSpacing(8)  # Giảm spacing
         
-        # Enhanced table styling
+        # Table với chiều cao lớn hơn
         self.history_table = QTableWidget()
         self.history_table.setColumnCount(6)
         self.history_table.setHorizontalHeaderLabels(["#", "Date/Time", "Raw Image", "Detection Image", "Defects", "Barcode"])
         
         header = self.history_table.horizontalHeader()
         
-        # Cột STT
+        # Column widths như cũ
         header.setSectionResizeMode(0, QHeaderView.Fixed)
         self.history_table.setColumnWidth(0, 40)
         
-        # Cột Date/Time
         header.setSectionResizeMode(1, QHeaderView.Fixed)
         self.history_table.setColumnWidth(1, 100)
         
-        # Cột Raw Image 
         header.setSectionResizeMode(2, QHeaderView.Fixed)
         self.history_table.setColumnWidth(2, 140)
         
-        # Cột Detection Image
         header.setSectionResizeMode(3, QHeaderView.Fixed)
         self.history_table.setColumnWidth(3, 140)
         
-        # Cột Defects 
         header.setSectionResizeMode(4, QHeaderView.Fixed)
         self.history_table.setColumnWidth(4, 690)
         
-        # Cột Barcode 
         header.setSectionResizeMode(5, QHeaderView.Stretch)
         
         self.history_table.verticalHeader().setVisible(False)
         self.history_table.setSelectionBehavior(QTableWidget.SelectRows)
         self.history_table.setAlternatingRowColors(True)
-        self.history_table.setMinimumHeight(400)  # Đặt chiều cao tối thiểu
         
-        self.history_table.setStyleSheet(HistoryTabStyles.get_table_style())
+        # Sử dụng expanded table style để có thêm chiều cao
+        self.history_table.setStyleSheet(HistoryTabStyles.get_expanded_table_style())
         
         left_layout.addWidget(self.history_table)
         
-        # === PAGINATION CONTROLS (dưới table) ===
+        # === COMPACT Pagination Controls ===
         pagination_frame = QFrame()
-        pagination_frame.setStyleSheet(HistoryTabStyles.get_pagination_frame_style())
+        pagination_frame.setStyleSheet(HistoryTabStyles.get_compact_pagination_frame_style())
         pagination_layout = QHBoxLayout(pagination_frame)
-        pagination_layout.setSpacing(12)
+        pagination_layout.setSpacing(8)
+        pagination_layout.setContentsMargins(8, 4, 8, 4)  # Giảm margins
         
-        # Records info (left side)
+        # Records info - compact
         self.records_info_label = QLabel("Showing 0-0 of 0 records")
-        self.records_info_label.setStyleSheet(HistoryTabStyles.get_pagination_records_info_style())
+        self.records_info_label.setStyleSheet(HistoryTabStyles.get_compact_pagination_records_info_style())
         pagination_layout.addWidget(self.records_info_label)
         
         pagination_layout.addStretch()
         
-        # Navigation buttons (center)
+        # Navigation buttons - compact với chỉ icon
         nav_layout = QHBoxLayout()
-        nav_layout.setSpacing(8)
+        nav_layout.setSpacing(4)  # Giảm spacing
         
-        self.first_page_btn = QPushButton("⏮️ First")
+        self.first_page_btn = QPushButton("⏮️")  # Chỉ icon
         self.first_page_btn.clicked.connect(self.go_to_first_page)
         
-        self.prev_page_btn = QPushButton("⬅️ Prev")
+        self.prev_page_btn = QPushButton("⬅️")  # Chỉ icon
         self.prev_page_btn.clicked.connect(self.go_to_previous_page)
         
         self.page_info_label = QLabel("Page 1 of 1")
-        self.page_info_label.setStyleSheet(HistoryTabStyles.get_pagination_page_info_style())
+        self.page_info_label.setStyleSheet(HistoryTabStyles.get_compact_pagination_page_info_style())
         
-        self.next_page_btn = QPushButton("Next ➡️")
+        self.next_page_btn = QPushButton("➡️")  # Chỉ icon
         self.next_page_btn.clicked.connect(self.go_to_next_page)
         
-        self.last_page_btn = QPushButton("Last ⏭️")
+        self.last_page_btn = QPushButton("⏭️")  # Chỉ icon
         self.last_page_btn.clicked.connect(self.go_to_last_page)
         
-        # Apply pagination button style to all buttons
-        pagination_button_style = HistoryTabStyles.get_pagination_button_style()
+        # Apply compact pagination button style
         for btn in [self.first_page_btn, self.prev_page_btn, self.next_page_btn, self.last_page_btn]:
-            btn.setStyleSheet(pagination_button_style)
+            btn.setStyleSheet(HistoryTabStyles.get_compact_pagination_button_style())
         
         nav_layout.addWidget(self.first_page_btn)
         nav_layout.addWidget(self.prev_page_btn)
@@ -313,40 +299,35 @@ class DetectionHistoryTab(QWidget):
         nav_layout.addWidget(self.last_page_btn)
         
         pagination_layout.addLayout(nav_layout)
-        
         pagination_layout.addStretch()
         
-        # Page size selector (right side)
+        # Page size selector - compact
         page_size_layout = QHBoxLayout()
         
         show_label = QLabel("Show:")
-        show_label.setStyleSheet(HistoryTabStyles.get_pagination_label_style())
+        show_label.setStyleSheet(HistoryTabStyles.get_compact_pagination_label_style())
         page_size_layout.addWidget(show_label)
         
         self.page_size_combo = QComboBox()
         self.page_size_combo.addItems(["5", "10", "20", "50"])
         self.page_size_combo.setCurrentText("10")
         self.page_size_combo.currentTextChanged.connect(self.on_page_size_changed)
-        self.page_size_combo.setStyleSheet(HistoryTabStyles.get_pagination_combo_style())
+        self.page_size_combo.setStyleSheet(HistoryTabStyles.get_compact_pagination_combo_style())
         page_size_layout.addWidget(self.page_size_combo)
-        
-        per_page_label = QLabel("per page")
-        per_page_label.setStyleSheet(HistoryTabStyles.get_pagination_label_style())
-        page_size_layout.addWidget(per_page_label)
         
         pagination_layout.addLayout(page_size_layout)
         
         left_layout.addWidget(pagination_frame)
         
-        # === RIGHT SIDE: Details Panel (30%) ===
+        # === RIGHT SIDE: Details Panel - giữ nguyên ===
         details_container = QWidget()
-        details_container.setMaximumWidth(400)  # Giới hạn chiều rộng tối đa
-        details_container.setMinimumWidth(300)   # Chiều rộng tối thiểu
+        details_container.setMaximumWidth(400)
+        details_container.setMinimumWidth(300)
         details_layout = QVBoxLayout(details_container)
-        details_layout.setContentsMargins(10, 0, 0, 0)  # Margin trái để tạo khoảng cách
+        details_layout.setContentsMargins(10, 0, 0, 0)
         details_layout.setSpacing(16)
         
-        # Enhanced details section
+        # Enhanced details section - giữ nguyên code cũ
         details_frame = QFrame()
         details_frame.setFrameShape(QFrame.StyledPanel)
         details_frame.setStyleSheet(HistoryTabStyles.get_details_frame_style())
@@ -389,7 +370,7 @@ class DetectionHistoryTab(QWidget):
         details_frame_layout.addLayout(details_grid)
         
         # Enhanced action buttons
-        actions_layout = QVBoxLayout()  # Vertical layout for better spacing
+        actions_layout = QVBoxLayout()
         actions_layout.setSpacing(8)
         actions_layout.setContentsMargins(0, 16, 0, 0)
         
@@ -403,27 +384,26 @@ class DetectionHistoryTab(QWidget):
             btn = QPushButton(text)
             btn.setEnabled(False)
             btn.clicked.connect(func)
-            btn.setMinimumHeight(40)  # Tăng chiều cao button
+            btn.setMinimumHeight(40)
             btn.setStyleSheet(HistoryTabStyles.get_action_button_style(color))
             self.action_buttons.append(btn)
             actions_layout.addWidget(btn)
         
         details_frame_layout.addLayout(actions_layout)
-        details_frame_layout.addStretch()  # Push content to top
+        details_frame_layout.addStretch()
         
         details_layout.addWidget(details_frame)
-        details_layout.addStretch()  # Push content to top
+        details_layout.addStretch()
         
         # === ADD TO SPLITTER ===
         main_content_splitter.addWidget(left_container)
         main_content_splitter.addWidget(details_container)
         
-        # Set splitter proportions: 70% table, 30% details
-        main_content_splitter.setStretchFactor(0, 7)  # Left side (table)
-        main_content_splitter.setStretchFactor(1, 3)  # Right side (details)
-        main_content_splitter.setSizes([700, 300])  # Initial sizes
+        # Table chiếm nhiều space hơn
+        main_content_splitter.setStretchFactor(0, 8)  # Tăng từ 7 lên 8
+        main_content_splitter.setStretchFactor(1, 2)  # Giảm từ 3 xuống 2
+        main_content_splitter.setSizes([800, 200])  # Adjust initial sizes
         
-        # Add splitter to main layout
         main_layout.addWidget(main_content_splitter)
         
         # Connect signals

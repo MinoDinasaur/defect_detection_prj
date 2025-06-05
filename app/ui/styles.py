@@ -915,3 +915,258 @@ class HistoryTabStyles:
                 padding: 2px 4px;
             }
         """
+    
+    @staticmethod
+    def get_compact_header_frame_style():
+        """Compact header style for history tab"""
+        return """
+            QFrame {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #667eea, stop:1 #764ba2);
+                border-radius: 8px;
+                padding: 8px 12px;
+                max-height: 60px;
+            }
+        """
+    
+    @staticmethod
+    def get_compact_header_title_style():
+        """Compact header title style"""
+        return """
+            QLabel {
+                color: white;
+                font-size: 18px;
+                font-weight: bold;
+                margin: 0;
+            }
+        """
+    
+    @staticmethod
+    def get_compact_filter_group_style():
+        """Compact filter group style with single row layout"""
+        return """
+            QGroupBox {
+                font-weight: 600;
+                font-size: 14px;
+                color: #2c3e50;
+                border: 1px solid #3498db;
+                border-radius: 8px;
+                margin-top: 6px;
+                padding: 6px;
+                background: rgba(255, 255, 255, 0.95);
+                max-height: 80px;
+            }
+            QGroupBox::title {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #3498db, stop:1 #2980b9);
+                color: white;
+                padding: 4px 12px;
+                border-radius: 6px;
+                margin-left: 8px;
+            }
+            QDateEdit, QComboBox {
+                padding: 4px 8px;
+                border: 1px solid #bdc3c7;
+                border-radius: 4px;
+                font-size: 12px;
+                background: white;
+                min-width: 80px;
+                max-height: 28px;
+            }
+            QDateEdit:focus, QComboBox:focus {
+                border: 2px solid #3498db;
+            }
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #3498db, stop:1 #2980b9);
+                color: white;
+                border: none;
+                border-radius: 4px;
+                padding: 6px 10px;
+                font-weight: 600;
+                min-width: 60px;
+                max-height: 28px;
+                font-size: 11px;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #4ea8eb, stop:1 #3990c9);
+            }
+            QLabel {
+                font-size: 11px;
+                font-weight: 500;
+                color: #2c3e50;
+                padding: 1px;
+            }
+        """
+    
+    @staticmethod
+    def get_compact_quick_filter_button_style():
+        """Compact quick filter button style"""
+        return """
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #95a5a6, stop:1 #7f8c8d);
+                min-width: 50px;
+                max-height: 28px;
+                font-size: 10px;
+                padding: 4px 8px;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #a5b5b6, stop:1 #8f9c8d);
+            }
+        """
+    
+    @staticmethod
+    def get_compact_pagination_frame_style():
+        """Compact pagination frame style"""
+        return """
+            QFrame {
+                background: white;
+                border: 1px solid #e0e6ed;
+                border-radius: 6px;
+                padding: 8px;
+                margin: 2px;
+                max-height: 50px;
+            }
+        """
+    
+    @staticmethod
+    def get_compact_pagination_records_info_style():
+        """Compact records info style"""
+        return """
+            QLabel {
+                color: #6c757d;
+                font-size: 11px;
+                font-weight: 500;
+                padding: 2px;
+            }
+        """
+    
+    @staticmethod
+    def get_compact_pagination_page_info_style():
+        """Compact page info style"""
+        return """
+            QLabel {
+                font-weight: 600;
+                color: #2c3e50;
+                padding: 0 12px;
+                font-size: 12px;
+                min-width: 80px;
+                text-align: center;
+            }
+        """
+    
+    @staticmethod
+    def get_compact_pagination_button_style():
+        """Compact pagination button style with icons only"""
+        return """
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #f8f9fa, stop:1 #e9ecef);
+                border: 1px solid #dee2e6;
+                border-radius: 4px;
+                padding: 4px 8px;
+                font-size: 14px;
+                font-weight: 500;
+                min-width: 30px;
+                max-height: 32px;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #e9ecef, stop:1 #dee2e6);
+                border: 1px solid #adb5bd;
+            }
+            QPushButton:disabled {
+                background: #f8f9fa;
+                color: #6c757d;
+                border: 1px solid #dee2e6;
+            }
+        """
+    
+    @staticmethod
+    def get_compact_pagination_combo_style():
+        """Compact pagination combo style"""
+        return """
+            QComboBox {
+                padding: 2px 6px;
+                border: 1px solid #dee2e6;
+                border-radius: 3px;
+                font-size: 11px;
+                min-width: 40px;
+                max-height: 24px;
+                background: white;
+            }
+        """
+    
+    @staticmethod
+    def get_compact_pagination_label_style():
+        """Compact pagination label style"""
+        return """
+            QLabel {
+                color: #495057;
+                font-size: 11px;
+                font-weight: 500;
+                padding: 2px;
+            }
+        """
+    
+    @staticmethod
+    def get_expanded_table_style():
+        """Table style with more vertical space"""
+        return """
+            QTableWidget {
+                border: 2px solid #bdc3c7;
+                border-radius: 12px;
+                background-color: white;
+                gridline-color: #ecf0f1;
+                font-size: 13px;
+                selection-background-color: #e8f4fd;
+                outline: none;
+                min-height: 500px;
+            }
+            QHeaderView::section {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #34495e, stop:1 #2c3e50);
+                color: white;
+                border: 1px solid #2c3e50;
+                padding: 10px 8px;
+                font-weight: bold;
+                font-size: 12px;
+                text-align: center;
+            }
+            QHeaderView::section:hover {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #3d566e, stop:1 #34495e);
+            }
+            QTableWidget::item {
+                padding: 8px 6px;
+                border-bottom: 1px solid #ecf0f1;
+                border-right: 1px solid #f8f9fa;
+                word-wrap: break-word;
+            }
+            QTableWidget::item:selected {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #e8f4fd, stop:1 #d4edda);
+                color: #2c3e50;
+                border: 1px solid #4a86e8;
+            }
+            QTableWidget::item:hover {
+                background-color: #f8f9fa;
+                border: 1px solid #dee2e6;
+            }
+            QScrollBar:vertical {
+                background: #f8f9fa;
+                width: 12px;
+                border-radius: 6px;
+            }
+            QScrollBar::handle:vertical {
+                background: #dee2e6;
+                border-radius: 6px;
+                min-height: 20px;
+            }
+            QScrollBar::handle:vertical:hover {
+                background: #adb5bd;
+            }
+        """
