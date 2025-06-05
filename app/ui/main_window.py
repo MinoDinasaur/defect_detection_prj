@@ -333,13 +333,8 @@ class DefectDetectionApp(QMainWindow):
         self.lblImage.setStyleSheet(AppStyles.get_image_label_style())
         image_frame_layout.addWidget(self.lblImage)
         
-        # CHỈ THÊM image_frame VÀO GROUP, KHÔNG CÓ image_info
         image_group_layout.addWidget(self.image_frame)
-        
-        # THÊM GROUP VÀO IMAGE LAYOUT TRƯỚC
         image_layout.addWidget(image_group)
-        
-        # SAU ĐÓ THÊM image_info RA NGOÀI HẲNG - ngoài GroupBox
         self.image_info = QLabel("📊 No image loaded")
         self.image_info.setStyleSheet(AppStyles.get_image_info_style())
         self.image_info.setAlignment(Qt.AlignCenter)
@@ -433,7 +428,22 @@ class DefectDetectionApp(QMainWindow):
             self.set_processing_state(True)
             
             camera = PylonCamera() 
+            
+            # ========================
+            # CHUYỂN ĐỔI TEST MODE
+            # ========================
+            
+            # Uncomment một trong những dòng dưới để test:
+            
+            # 1. Test với file cụ thể:
+            # row_id = camera.capture_image_from_file()
+            
+            # 2. Test với file có tên cụ thể trong storage:
+            # row_id = camera.capture_test_image("defect_sample.jpg")
+            
+            # 3. Dùng camera thật (dòng gốc):
             row_id = camera.capture_image()
+            
             if row_id is None:
                 raise Exception("Failed to capture image.")    
                 
@@ -462,7 +472,12 @@ class DefectDetectionApp(QMainWindow):
             # Save to database
             update_detection_in_db(self.image_thread.row_id, img_with_boxes, result_obj)
 
-            # Mark history as needing refresh
+            # TỰ ĐỘNG REFRESH HISTORY TAB NGAY SAU KHI CHỤP XONG
+            if hasattr(self, 'history_tab') and self.history_tab:
+                self.history_tab.refresh_data()
+                print("🔄 History tab auto-refreshed after image processing")
+            
+            # Mark history as needing refresh (backup)
             self.history_loaded = False
             self.history_needs_refresh = True
             

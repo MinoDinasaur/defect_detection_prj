@@ -821,3 +821,48 @@ class DetectionHistoryTab(QWidget):
                 
         except Exception as e:
             print(f"Error populating defect types: {e}")
+    
+    def add_new_record(self, row_id):
+        """
+        Thêm record mới vào đầu table thay vì refresh toàn bộ
+        
+        Args:
+            row_id (int): ID của record mới được tạo
+        """
+        try:
+            from sqlite_database.src.db_operations import get_detection_summary
+            
+            # Lấy thông tin record mới
+            record_data = get_detection_summary(row_id)
+            if not record_data:
+                print(f"Cannot find record {row_id}")
+                return
+            
+            time_str, defect, barcode = record_data
+            
+            # Thêm row mới vào đầu table
+            self.history_table.insertRow(0)
+            
+            # Set data cho row mới
+            self.history_table.setItem(0, 0, QTableWidgetItem(str(row_id)))
+            self.history_table.setItem(0, 1, QTableWidgetItem(time_str))
+            self.history_table.setItem(0, 2, QTableWidgetItem(defect or "No defects"))
+            self.history_table.setItem(0, 3, QTableWidgetItem(barcode or "N/A"))
+            
+            # Highlight row mới với màu khác biệt
+            for col in range(self.history_table.columnCount()):
+                item = self.history_table.item(0, col)
+                if item:
+                    item.setBackground(QColor(230, 247, 255))  # Light blue highlight
+            
+            # Cập nhật pagination info
+            if hasattr(self, 'records_info_label'):
+                current_count = self.history_table.rowCount()
+                self.records_info_label.setText(f"📊 Total: {current_count} records")
+            
+            print(f"✅ Record {row_id} added to history table")
+            
+        except Exception as e:
+            print(f"Error adding new record: {e}")
+            # Fallback to full refresh nếu có lỗi
+            self.refresh_data()
