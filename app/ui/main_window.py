@@ -333,14 +333,18 @@ class DefectDetectionApp(QMainWindow):
         self.lblImage.setStyleSheet(AppStyles.get_image_label_style())
         image_frame_layout.addWidget(self.lblImage)
         
+        # CHỈ THÊM image_frame VÀO GROUP, KHÔNG CÓ image_info
         image_group_layout.addWidget(self.image_frame)
         
-        # Enhanced image info
+        # THÊM GROUP VÀO IMAGE LAYOUT TRƯỚC
+        image_layout.addWidget(image_group)
+        
+        # SAU ĐÓ THÊM image_info RA NGOÀI HẲNG - ngoài GroupBox
         self.image_info = QLabel("📊 No image loaded")
         self.image_info.setStyleSheet(AppStyles.get_image_info_style())
-        image_group_layout.addWidget(self.image_info)
-        
-        image_layout.addWidget(image_group)
+        self.image_info.setAlignment(Qt.AlignCenter)
+        self.image_info.setFixedHeight(40)
+        image_layout.addWidget(self.image_info)  # Thêm vào image_layout, ngoài GroupBox
         
         # === Right side: Enhanced Results area ===
         self.results_container = QWidget()
