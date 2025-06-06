@@ -3,8 +3,6 @@ from datetime import datetime
 from sqlite3 import Error
 import os
 import cv2
-import sys
-from datetime import datetime
 
 DB_PATH = 'sqlite_database/db/detections.db'
 
@@ -106,72 +104,14 @@ def save_detection_to_db(img_raw, img_detect, defect, barcode=None):
         print(f"Error saving detection to database: {e}")
         return None
 
-def save_to_db(img_raw_path, img_with_boxes, result_obj):
-    """
-    Save the raw image, detected image, and defect information to the database.
-
-    Args:
-        img_raw_path (str): Path to the raw image file.
-        img_with_boxes (numpy.ndarray): Image with bounding boxes drawn.
-        result_obj (object): Detection result object containing defect information.
-    """
-    global scanned_barcode
-    try:
-        # Save the detected image to a file
-        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        detected_path = f"/home/ducanh/Desktop/DATN/DB/images_origin_detect/detected/{timestamp}_detected.png"
-        cv2.imwrite(detected_path, img_with_boxes)
-
-        # Read raw and detected images as binary data
-        with open(img_raw_path, "rb") as raw_file:
-            img_raw = raw_file.read()
-        with open(detected_path, "rb") as detected_file:
-            img_detect = detected_file.read()
-
-        # Extract defect information - CHỈ LẤY TÊN, KHÔNG CÓ CONFIDENCE
-        classes = result_obj.names
-        boxes = result_obj.boxes
-        labels = boxes.cls.cpu().tolist() if boxes is not None else []
-
-        # Filter out OK class
-        defect_indices = [cls_id for cls_id in labels if classes[int(cls_id)].lower() != "ok"]
-
-        if defect_indices:
-            # Get unique defect names only (no confidence scores)
-            defect_names = [classes[int(cls_id)] for cls_id in defect_indices]
-            unique_defects = list(set(defect_names))  # Remove duplicates
-            defect_info = ", ".join(sorted(unique_defects))  # Sort for consistency
-        else:
-            defect_info = "No defects"
-
-        # Save to database
-        save_detection_to_db(img_raw, img_detect, defect_info, barcode=scanned_barcode)
-
-        print("Data saved to database successfully.")
-        
-        # Reset the barcode after saving to database
-        reset_scanned_barcode()
-
-    except Exception as e:
-        print(f"Error saving to database: {e}")
-
 def update_detection_in_db(row_id, img_with_boxes, result_obj):
     """
-    Update detection data in the SQLite database.
-
-    Args:
-        row_id (int): The row ID of the record to update.
-        img_with_boxes (numpy.ndarray): Image with bounding boxes drawn.
-        result_obj (object): Detection result object containing defect information.
+    Update detection data in the SQLite database (without saving to disk).
     """
     try:
-        # Save the detected image to a file
-        detected_path = f"/home/ducanh/Desktop/defect_detection_prj/storage/detected_images/{row_id}_detected.png"
-        cv2.imwrite(detected_path, img_with_boxes)
-
-        # Read detected image as binary data
-        with open(detected_path, "rb") as detected_file:
-            img_detect = detected_file.read()
+        # Encode image as binary data directly
+        _, img_encoded = cv2.imencode('.png', img_with_boxes)
+        img_detect = img_encoded.tobytes()
 
         # Extract defect information
         classes = result_obj.names
@@ -182,10 +122,9 @@ def update_detection_in_db(row_id, img_with_boxes, result_obj):
         defect_indices = [cls_id for cls_id in labels if classes[int(cls_id)].lower() != "ok"]
         
         if defect_indices:
-            # Get unique defect names only (no confidence scores)
             defect_names = [classes[int(cls_id)] for cls_id in defect_indices]
-            unique_defects = list(set(defect_names))  # Remove duplicates
-            defect_info = ", ".join(sorted(unique_defects))  # Sort for consistency
+            unique_defects = list(set(defect_names))
+            defect_info = ", ".join(sorted(unique_defects))
         else:
             defect_info = "No defects"
 

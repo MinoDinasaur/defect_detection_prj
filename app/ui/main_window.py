@@ -145,9 +145,6 @@ class DefectDetectionApp(QMainWindow):
     def __init__(self):
         super().__init__()
         
-        # Initialize attributes early
-        self.last_captured_path = None
-        self.current_raw_image = None
         self.history_needs_refresh = False
         self.history_loaded = False 
         self.processing_timer = QTimer()
@@ -436,13 +433,13 @@ class DefectDetectionApp(QMainWindow):
             # Uncomment một trong những dòng dưới để test:
             
             # 1. Test với file cụ thể:
-            # row_id = camera.capture_image_from_file()
+            row_id = camera.capture_image_from_file()
             
             # 2. Test với file có tên cụ thể trong storage:
             # row_id = camera.capture_test_image("defect_sample.jpg")
             
             # 3. Dùng camera thật (dòng gốc):
-            row_id = camera.capture_image()
+            # row_id = camera.capture_image()
             
             if row_id is None:
                 raise Exception("Failed to capture image.")    
@@ -575,8 +572,6 @@ class DefectDetectionApp(QMainWindow):
         self.lblImage.setText("🎯 Captured image will appear here\n\nClick 'Capture Image' to start quality inspection")
         self.lstResult.clear()
         self.image_info.setText("📊 No image loaded")
-        self.last_captured_path = None
-        self.current_raw_image = None
         
         # Reset mini status cards
         self.total_defects_card.update_value("0", "#6c757d")
@@ -632,12 +627,15 @@ class DefectDetectionApp(QMainWindow):
     def resizeEvent(self, event):
         """Handle window resize"""
         super().resizeEvent(event)
-        # If we have an image loaded, rescale it
-        if self.last_captured_path and not self.lblImage.text():
+    
+        # Kiểm tra xem lblImage đã được khởi tạo chưa
+        if hasattr(self, 'lblImage'):
+            # Resize pixmap if available
             pixmap = self.lblImage.pixmap()
-            if pixmap:
-                self.lblImage.setPixmap(pixmap.scaled(
-                    self.lblImage.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
+            if pixmap and not pixmap.isNull():
+                scaled_pixmap = pixmap.scaled(
+                    self.lblImage.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                self.lblImage.setPixmap(scaled_pixmap)
 
     def closeEvent(self, event):
         try:
