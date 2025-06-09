@@ -8,11 +8,14 @@ from PySide6.QtGui import QPixmap, QImage, QIcon, QFont, QColor
 import sqlite3
 import cv2
 import numpy as np
+import os
+from datetime import datetime
 from sqlite_database.src.db_operations import (
     get_defect_types, delete_detection_from_db,
-    get_detections, get_image_data
+    get_detections, get_image_data, get_detections_paginated,
+    get_detection_for_export  
 )
-import os
+from app.ui.styles import HistoryTabStyles
 
 class ImageViewDialog(QDialog):
     """Enhanced dialog for viewing images in larger size"""
@@ -20,12 +23,7 @@ class ImageViewDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle(f"🖼️ {title}")
         self.setMinimumSize(800, 600)
-        self.setStyleSheet("""
-            QDialog {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-                    stop:0 #f8f9fa, stop:1 #e9ecef);
-            }
-        """)
+        self.setStyleSheet(HistoryTabStyles.get_dialog_style())
         
         # Layout
         layout = QVBoxLayout(self)
@@ -34,25 +32,11 @@ class ImageViewDialog(QDialog):
         
         # Title section
         title_frame = QFrame()
-        title_frame.setStyleSheet("""
-            QFrame {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #4a86e8, stop:1 #3a76d8);
-                border-radius: 8px;
-                padding: 12px;
-            }
-        """)
+        title_frame.setStyleSheet(HistoryTabStyles.get_dialog_title_frame_style())
         title_layout = QHBoxLayout(title_frame)
         
         title_label = QLabel(f"📸 {title}")
-        title_label.setStyleSheet("""
-            QLabel {
-                color: white;
-                font-size: 18px;
-                font-weight: bold;
-                margin: 0;
-            }
-        """)
+        title_label.setStyleSheet(HistoryTabStyles.get_dialog_title_style())
         title_layout.addWidget(title_label)
         title_layout.addStretch()
         
@@ -62,14 +46,7 @@ class ImageViewDialog(QDialog):
         self.image_label = QLabel()
         self.image_label.setAlignment(Qt.AlignCenter)
         self.image_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.image_label.setStyleSheet("""
-            QLabel {
-                background: white;
-                border: 2px solid #e0e6ed;
-                border-radius: 8px;
-                padding: 8px;
-            }
-        """)
+        self.image_label.setStyleSheet(HistoryTabStyles.get_dialog_image_label_style())
         
         # Convert image data to QPixmap
         if isinstance(image_data, bytes):
@@ -99,41 +76,11 @@ class ImageViewDialog(QDialog):
         
         save_button = QPushButton("💾 Save Image")
         save_button.clicked.connect(lambda: self.save_image(pixmap))
-        save_button.setStyleSheet("""
-            QPushButton {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #28a745, stop:1 #218838);
-                color: white;
-                border: none;
-                border-radius: 6px;
-                padding: 8px 16px;
-                font-weight: 600;
-                min-width: 100px;
-            }
-            QPushButton:hover {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #34ce57, stop:1 #28a745);
-            }
-        """)
+        save_button.setStyleSheet(HistoryTabStyles.get_dialog_save_button_style())
         
         close_button = QPushButton("✖️ Close")
         close_button.clicked.connect(self.accept)
-        close_button.setStyleSheet("""
-            QPushButton {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #6c757d, stop:1 #5a6268);
-                color: white;
-                border: none;
-                border-radius: 6px;
-                padding: 8px 16px;
-                font-weight: 600;
-                min-width: 80px;
-            }
-            QPushButton:hover {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #7c868d, stop:1 #6c757d);
-            }
-        """)
+        close_button.setStyleSheet(HistoryTabStyles.get_dialog_close_button_style())
         
         button_layout.addWidget(save_button)
         button_layout.addWidget(close_button)
@@ -149,264 +96,287 @@ class ImageViewDialog(QDialog):
             pixmap.save(file_name)
             QMessageBox.information(self, "Success", f"Image saved to {file_name}")
 
+class ClickableImageLabel(QLabel):
+    """Custom QLabel that emits signals on double-click"""
+    double_clicked = Signal(int, str)  # row_id, image_type
+    
+    def __init__(self, row_id, image_type, parent=None):
+        super().__init__(parent)
+        self.row_id = row_id
+        self.image_type = image_type
+        self.setAlignment(Qt.AlignCenter)
+        self.setStyleSheet(HistoryTabStyles.get_image_thumbnail_style())
+        
+        # Set cursor pointer để cho biết có thể click
+        self.setCursor(Qt.PointingHandCursor)
+        
+        # Add tooltip to indicate double-click functionality
+        self.setToolTip("Double-click to view full image")
+        
+    def mouseDoubleClickEvent(self, event):
+        """Handle double-click event"""
+        if event.button() == Qt.LeftButton:
+            self.double_clicked.emit(self.row_id, self.image_type)
+        super().mouseDoubleClickEvent(event)
+
 class DetectionHistoryTab(QWidget):
-    """Enhanced tab for viewing detection history"""
+    """Enhanced tab for viewing detection history with pagination"""
     
     refresh_signal = Signal()
     
     def __init__(self, parent=None):
         super().__init__(parent)
         self.parent = parent
+        
+        # Pagination variables
+        self.current_page = 1
+        self.page_size = 10  # 10 records per page
+        self.total_records = 0
+        self.total_pages = 0
+        
         self.initUI()
         
     def initUI(self):
-        """Initialize enhanced UI components"""
+        """Initialize enhanced UI components with pagination"""
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(24, 24, 24, 24)
-        main_layout.setSpacing(20)
+        main_layout.setContentsMargins(16, 16, 16, 16)  # Giảm từ 24 xuống 16
+        main_layout.setSpacing(12)  # Giảm từ 20 xuống 12
         
-        # === Enhanced Header ===
+        # === COMPACT Header ===
         header_frame = QFrame()
-        header_frame.setStyleSheet("""
-            QFrame {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #667eea, stop:1 #764ba2);
-                border-radius: 16px;
-                padding: 20px;
-            }
-        """)
+        header_frame.setStyleSheet(HistoryTabStyles.get_compact_header_frame_style())
         
         header_layout = QHBoxLayout(header_frame)
+        header_layout.setContentsMargins(12, 8, 12, 8)  # Giảm padding
         
-        title_label = QLabel("📊 Detection History & Analytics")
-        title_label.setStyleSheet("""
-            QLabel {
-                color: white;
-                font-size: 28px;
-                font-weight: bold;
-                margin: 0;
-            }
-        """)
+        # Compact title - chỉ 1 dòng
+        title_label = QLabel("📊 Detection History")  # Rút gọn title
+        title_label.setStyleSheet(HistoryTabStyles.get_compact_header_title_style())
         
-        subtitle_label = QLabel("View and analyze past quality control results")
-        subtitle_label.setStyleSheet("""
-            QLabel {
-                color: rgba(255, 255, 255, 0.8);
-                font-size: 16px;
-                margin: 0;
-            }
-        """)
-        
-        title_layout = QVBoxLayout()
-        title_layout.addWidget(title_label)
-        title_layout.addWidget(subtitle_label)
-        
-        header_layout.addLayout(title_layout)
+        header_layout.addWidget(title_label)
         header_layout.addStretch()
         
         main_layout.addWidget(header_frame)
         
-        # === Enhanced Filter Section ===
-        filter_group = QGroupBox("🔍 Filter & Search Options")
-        filter_group.setStyleSheet("""
-            QGroupBox {
-                font-weight: 600;
-                font-size: 16px;
-                color: #2c3e50;
-                border: 2px solid #3498db;
-                border-radius: 12px;
-                margin-top: 20px;
-                padding: 20px;
-                background: rgba(255, 255, 255, 0.95);
-            }
-            QGroupBox::title {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #3498db, stop:1 #2980b9);
-                color: white;
-                padding: 8px 20px;
-                border-radius: 8px;
-                margin-left: 10px;
-            }
-            QDateEdit, QComboBox {
-                padding: 8px 12px;
-                border: 2px solid #bdc3c7;
-                border-radius: 8px;
-                font-size: 14px;
-                background: white;
-                min-width: 120px;
-            }
-            QDateEdit:focus, QComboBox:focus {
-                border: 2px solid #3498db;
-            }
-            QPushButton {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #3498db, stop:1 #2980b9);
-                color: white;
-                border: none;
-                border-radius: 8px;
-                padding: 10px 16px;
-                font-weight: 600;
-                min-width: 100px;
-            }
-            QPushButton:hover {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #4ea8eb, stop:1 #3990c9);
-            }
-        """)
+        # === COMPACT Filter Section ===
+        filter_group = QGroupBox("🔍 Filters")  # Rút gọn title
+        filter_group.setStyleSheet(HistoryTabStyles.get_compact_filter_group_style())
         
-        filter_layout = QGridLayout(filter_group)
-        filter_layout.setSpacing(16)
+        # SINGLE ROW layout cho tất cả controls
+        filter_layout = QHBoxLayout(filter_group)
+        filter_layout.setContentsMargins(8, 6, 8, 6)  # Giảm margins
+        filter_layout.setSpacing(8)  # Giảm spacing
         
-        # Enhanced date controls
-        filter_layout.addWidget(QLabel("📅 Date Range:"), 0, 0)
+        # Date controls - compact
+        filter_layout.addWidget(QLabel("📅"))
         self.date_from = QDateEdit()
         self.date_from.setCalendarPopup(True)
         self.date_from.setDate(QDate.currentDate().addDays(-7))
-        filter_layout.addWidget(self.date_from, 0, 1)
+        self.date_from.setDisplayFormat("dd/MM")  # Format ngắn hơn
+        filter_layout.addWidget(self.date_from)
         
-        filter_layout.addWidget(QLabel("to"), 0, 2)
+        filter_layout.addWidget(QLabel("→"))
         self.date_to = QDateEdit()
         self.date_to.setCalendarPopup(True)
         self.date_to.setDate(QDate.currentDate())
-        filter_layout.addWidget(self.date_to, 0, 3)
+        self.date_to.setDisplayFormat("dd/MM")  # Format ngắn hơn
+        filter_layout.addWidget(self.date_to)
         
-        # Enhanced defect filter
-        filter_layout.addWidget(QLabel("🔧 Defect Type:"), 0, 4)
+        # Defect filter - compact
+        filter_layout.addWidget(QLabel("🔧"))
         self.defect_combo = QComboBox()
         self.defect_combo.addItem("All")
-        filter_layout.addWidget(self.defect_combo, 0, 5)
+        filter_layout.addWidget(self.defect_combo)
         
-        # Quick date buttons
+        # Quick buttons - compact
         quick_buttons = [
             ("Today", lambda: self.set_date_range(0)),
-            ("Last Week", lambda: self.set_date_range(7)),
-            ("Last Month", lambda: self.set_date_range(30))
+            ("Week", lambda: self.set_date_range(7)),  # Rút gọn text
+            ("Month", lambda: self.set_date_range(30)),
+            ("All", lambda: self.set_all_dates())  # Rút gọn text
         ]
         
-        for i, (text, func) in enumerate(quick_buttons):
+        for text, func in quick_buttons:
             btn = QPushButton(text)
             btn.clicked.connect(func)
-            btn.setStyleSheet("""
-                QPushButton {
-                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                        stop:0 #95a5a6, stop:1 #7f8c8d);
-                    min-width: 80px;
-                }
-                QPushButton:hover {
-                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                        stop:0 #a5b5b6, stop:1 #8f9c8d);
-                }
-            """)
-            filter_layout.addWidget(btn, 1, i)
+            btn.setStyleSheet(HistoryTabStyles.get_compact_quick_filter_button_style())
+            filter_layout.addWidget(btn)
         
         # Apply filter button
-        self.apply_filter_btn = QPushButton("🔍 Apply Filter")
+        self.apply_filter_btn = QPushButton("Apply")  # Rút gọn text
         self.apply_filter_btn.clicked.connect(self.refresh_data)
-        filter_layout.addWidget(self.apply_filter_btn, 1, 3, 1, 2)
+        filter_layout.addWidget(self.apply_filter_btn)
+        
+        filter_layout.addStretch()  # Push everything to left
         
         main_layout.addWidget(filter_group)
         
-        # === Enhanced Results Table ===
-        results_splitter = QSplitter(Qt.Vertical)
+        # === MAIN CONTENT với nhiều space hơn cho table ===
+        main_content_splitter = QSplitter(Qt.Horizontal)
+        main_content_splitter.setChildrenCollapsible(False)
         
-        # Enhanced table styling
+        # === LEFT SIDE: Table và Pagination ===
+        left_container = QWidget()
+        left_layout = QVBoxLayout(left_container)
+        left_layout.setContentsMargins(0, 0, 10, 0)
+        left_layout.setSpacing(8)  # Giảm spacing
+        
+        # Table với chiều cao lớn hơn
         self.history_table = QTableWidget()
         self.history_table.setColumnCount(6)
-        self.history_table.setHorizontalHeaderLabels(["ID", "Date/Time", "Raw Image", "Detection Image", "Defects", "Barcode"])
-        self.history_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.history_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        self.history_table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
-        self.history_table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)
+        self.history_table.setHorizontalHeaderLabels(["#", "Date/Time", "Raw Image", "Detection Image", "Defects", "Barcode"])
+        
+        header = self.history_table.horizontalHeader()
+        
+        # Column widths như cũ
+        header.setSectionResizeMode(0, QHeaderView.Fixed)
+        self.history_table.setColumnWidth(0, 40)
+        
+        header.setSectionResizeMode(1, QHeaderView.Fixed)
+        self.history_table.setColumnWidth(1, 100)
+        
+        header.setSectionResizeMode(2, QHeaderView.Fixed)
+        self.history_table.setColumnWidth(2, 140)
+        
+        header.setSectionResizeMode(3, QHeaderView.Fixed)
+        self.history_table.setColumnWidth(3, 140)
+        
+        header.setSectionResizeMode(4, QHeaderView.Fixed)
+        self.history_table.setColumnWidth(4, 690)
+        
+        header.setSectionResizeMode(5, QHeaderView.Stretch)
+        
         self.history_table.verticalHeader().setVisible(False)
         self.history_table.setSelectionBehavior(QTableWidget.SelectRows)
         self.history_table.setAlternatingRowColors(True)
         
-        self.history_table.setStyleSheet("""
-            QTableWidget {
-                border: 2px solid #bdc3c7;
-                border-radius: 12px;
-                background-color: white;
-                gridline-color: #ecf0f1;
-                font-size: 14px;
-                selection-background-color: #e8f4fd;
-            }
-            QHeaderView::section {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #34495e, stop:1 #2c3e50);
-                color: white;
-                border: 1px solid #2c3e50;
-                padding: 12px;
-                font-weight: bold;
-                font-size: 14px;
-            }
-            QTableWidget::item {
-                padding: 12px;
-                border-bottom: 1px solid #ecf0f1;
-            }
-            QTableWidget::item:selected {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #e8f4fd, stop:1 #d4edda);
-                color: #2c3e50;
-            }
-            QTableWidget::item:hover {
-                background-color: #f8f9fa;
-            }
-        """)
+        # Sử dụng expanded table style để có thêm chiều cao
+        self.history_table.setStyleSheet(HistoryTabStyles.get_expanded_table_style())
         
-        results_splitter.addWidget(self.history_table)
+        left_layout.addWidget(self.history_table)
         
-        # Enhanced details section
+        # === COMPACT Pagination Controls ===
+        pagination_frame = QFrame()
+        pagination_frame.setStyleSheet(HistoryTabStyles.get_compact_pagination_frame_style())
+        pagination_layout = QHBoxLayout(pagination_frame)
+        pagination_layout.setSpacing(8)
+        pagination_layout.setContentsMargins(8, 4, 8, 4)  # Giảm margins
+        
+        # Records info - compact
+        self.records_info_label = QLabel("Showing 0-0 of 0 records")
+        self.records_info_label.setStyleSheet(HistoryTabStyles.get_compact_pagination_records_info_style())
+        pagination_layout.addWidget(self.records_info_label)
+        
+        pagination_layout.addStretch()
+        
+        # Navigation buttons - compact với chỉ icon
+        nav_layout = QHBoxLayout()
+        nav_layout.setSpacing(4)  # Giảm spacing
+        
+        self.first_page_btn = QPushButton("⏮️")  # Chỉ icon
+        self.first_page_btn.clicked.connect(self.go_to_first_page)
+        
+        self.prev_page_btn = QPushButton("⬅️")  # Chỉ icon
+        self.prev_page_btn.clicked.connect(self.go_to_previous_page)
+        
+        self.page_info_label = QLabel("Page 1 of 1")
+        self.page_info_label.setStyleSheet(HistoryTabStyles.get_compact_pagination_page_info_style())
+        
+        self.next_page_btn = QPushButton("➡️")  # Chỉ icon
+        self.next_page_btn.clicked.connect(self.go_to_next_page)
+        
+        self.last_page_btn = QPushButton("⏭️")  # Chỉ icon
+        self.last_page_btn.clicked.connect(self.go_to_last_page)
+        
+        # Apply compact pagination button style
+        for btn in [self.first_page_btn, self.prev_page_btn, self.next_page_btn, self.last_page_btn]:
+            btn.setStyleSheet(HistoryTabStyles.get_compact_pagination_button_style())
+        
+        nav_layout.addWidget(self.first_page_btn)
+        nav_layout.addWidget(self.prev_page_btn)
+        nav_layout.addWidget(self.page_info_label)
+        nav_layout.addWidget(self.next_page_btn)
+        nav_layout.addWidget(self.last_page_btn)
+        
+        pagination_layout.addLayout(nav_layout)
+        pagination_layout.addStretch()
+        
+        # Page size selector - compact
+        page_size_layout = QHBoxLayout()
+        
+        show_label = QLabel("Show:")
+        show_label.setStyleSheet(HistoryTabStyles.get_compact_pagination_label_style())
+        page_size_layout.addWidget(show_label)
+        
+        self.page_size_combo = QComboBox()
+        self.page_size_combo.addItems(["5", "10", "20", "50"])
+        self.page_size_combo.setCurrentText("10")
+        self.page_size_combo.currentTextChanged.connect(self.on_page_size_changed)
+        self.page_size_combo.setStyleSheet(HistoryTabStyles.get_compact_pagination_combo_style())
+        page_size_layout.addWidget(self.page_size_combo)
+        
+        pagination_layout.addLayout(page_size_layout)
+        
+        left_layout.addWidget(pagination_frame)
+        
+        # === RIGHT SIDE: Details Panel - giữ nguyên ===
+        details_container = QWidget()
+        details_container.setMaximumWidth(400)
+        details_container.setMinimumWidth(300)
+        details_layout = QVBoxLayout(details_container)
+        details_layout.setContentsMargins(10, 0, 0, 0)
+        details_layout.setSpacing(16)
+        
+        # Enhanced details section - giữ nguyên code cũ
         details_frame = QFrame()
         details_frame.setFrameShape(QFrame.StyledPanel)
-        details_frame.setMaximumHeight(220)
-        details_frame.setStyleSheet("""
-            QFrame {
-                background: white;
-                border: 2px solid #e0e6ed;
-                border-radius: 12px;
-                padding: 20px;
-            }
-        """)
+        details_frame.setStyleSheet(HistoryTabStyles.get_details_frame_style())
         
-        details_layout = QVBoxLayout(details_frame)
+        details_frame_layout = QVBoxLayout(details_frame)
+        details_frame_layout.setContentsMargins(16, 16, 16, 16)
+        details_frame_layout.setSpacing(12)
         
         # Enhanced detail labels
         details_title = QLabel("📋 Selected Detection Details")
-        details_title.setStyleSheet("""
-            QLabel {
-                font-size: 18px;
-                font-weight: bold;
-                color: #2c3e50;
-                margin-bottom: 10px;
-            }
-        """)
-        details_layout.addWidget(details_title)
+        details_title.setStyleSheet(HistoryTabStyles.get_details_title_style())
+        details_frame_layout.addWidget(details_title)
         
-        self.details_defect = QLabel("🔧 Defect: None selected")
-        self.details_time = QLabel("⏰ Time: None selected") 
-        self.details_barcode = QLabel("📦 Barcode: None selected")
+        # Create a grid layout for better organization
+        details_grid = QGridLayout()
+        details_grid.setSpacing(10)
+        details_grid.setContentsMargins(0, 8, 0, 8)
         
+        # Defect info - spans full width
+        self.details_defect = QLabel("🔧 None selected")
+        self.details_defect.setWordWrap(True)
+        self.details_defect.setMinimumHeight(40)
+        details_grid.addWidget(self.details_defect, 0, 0, 1, 2)
+        
+        # Time and Barcode in separate rows for better readability
+        self.details_time = QLabel("⏰ None selected")
+        self.details_time.setWordWrap(True)
+        self.details_time.setMinimumHeight(35)
+        details_grid.addWidget(self.details_time, 1, 0, 1, 2)
+        
+        self.details_barcode = QLabel("📦 None selected")
+        self.details_barcode.setWordWrap(True)
+        self.details_barcode.setMinimumHeight(35)
+        details_grid.addWidget(self.details_barcode, 2, 0, 1, 2)
+        
+        # Apply initial styling
         for label in [self.details_defect, self.details_time, self.details_barcode]:
-            label.setStyleSheet("""
-                QLabel {
-                    font-size: 14px;
-                    color: #34495e;
-                    padding: 6px;
-                    background: #f8f9fa;
-                    border-radius: 6px;
-                    margin: 2px 0;
-                }
-            """)
-            details_layout.addWidget(label)
+            label.setStyleSheet(HistoryTabStyles.get_details_label_style())
+        
+        details_frame_layout.addLayout(details_grid)
         
         # Enhanced action buttons
-        actions_layout = QHBoxLayout()
+        actions_layout = QVBoxLayout()
+        actions_layout.setSpacing(8)
+        actions_layout.setContentsMargins(0, 16, 0, 0)
         
         button_configs = [
-            ("👁️ View Raw", self.view_raw_image, "#3498db"),
-            ("🔍 View Detection", self.view_detection_image, "#2ecc71"),
-            ("📤 Export", self.export_detection, "#f39c12"),
-            ("🗑️ Delete", self.delete_detection, "#e74c3c")
+            ("📤 Export Detection", self.export_detection, "#f39c12"),
+            ("🗑️ Delete Detection", self.delete_detection, "#e74c3c")
         ]
         
         self.action_buttons = []
@@ -414,36 +384,27 @@ class DetectionHistoryTab(QWidget):
             btn = QPushButton(text)
             btn.setEnabled(False)
             btn.clicked.connect(func)
-            btn.setStyleSheet(f"""
-                QPushButton {{
-                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                        stop:0 {color}, stop:1 {self.darken_color(color)});
-                    color: white;
-                    border: none;
-                    border-radius: 8px;
-                    padding: 10px 16px;
-                    font-weight: 600;
-                    min-width: 120px;
-                }}
-                QPushButton:hover {{
-                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                        stop:0 {self.lighten_color(color)}, stop:1 {color});
-                }}
-                QPushButton:disabled {{
-                    background: #bdc3c7;
-                    color: #7f8c8d;
-                }}
-            """)
+            btn.setMinimumHeight(40)
+            btn.setStyleSheet(HistoryTabStyles.get_action_button_style(color))
             self.action_buttons.append(btn)
             actions_layout.addWidget(btn)
         
-        details_layout.addLayout(actions_layout)
+        details_frame_layout.addLayout(actions_layout)
+        details_frame_layout.addStretch()
+        
+        details_layout.addWidget(details_frame)
         details_layout.addStretch()
         
-        results_splitter.addWidget(details_frame)
-        results_splitter.setSizes([600, 220])
+        # === ADD TO SPLITTER ===
+        main_content_splitter.addWidget(left_container)
+        main_content_splitter.addWidget(details_container)
         
-        main_layout.addWidget(results_splitter)
+        # Table chiếm nhiều space hơn
+        main_content_splitter.setStretchFactor(0, 8)  # Tăng từ 7 lên 8
+        main_content_splitter.setStretchFactor(1, 2)  # Giảm từ 3 xuống 2
+        main_content_splitter.setSizes([800, 200])  # Adjust initial sizes
+        
+        main_layout.addWidget(main_content_splitter)
         
         # Connect signals
         self.history_table.itemSelectionChanged.connect(self.on_selection_changed)
@@ -452,133 +413,105 @@ class DetectionHistoryTab(QWidget):
         self.populate_defect_types()
         self.refresh_data()
     
-    def darken_color(self, color):
-        """Helper function to darken a color"""
-        color_map = {
-            "#3498db": "#2980b9",
-            "#2ecc71": "#27ae60", 
-            "#f39c12": "#e67e22",
-            "#e74c3c": "#c0392b"
-        }
-        return color_map.get(color, color)
-    
-    def lighten_color(self, color):
-        """Helper function to lighten a color"""
-        color_map = {
-            "#3498db": "#5dade2",
-            "#2ecc71": "#58d68d",
-            "#f39c12": "#f8c471", 
-            "#e74c3c": "#ec7063"
-        }
-        return color_map.get(color, color)
-    
-    def set_date_range(self, days_back):
-        """Set date range for quick filters"""
-        today = QDate.currentDate()
-        self.date_to.setDate(today)
-        self.date_from.setDate(today.addDays(-days_back))
-        self.refresh_data()
-    
-    def populate_defect_types(self):
-        """Populate defect type combobox from database"""
-        try:
-            defect_types = get_defect_types()       
-            current_selection = self.defect_combo.currentText()
-            
-            self.defect_combo.clear()
-            self.defect_combo.addItem("All")
-            
-            for defect_type in defect_types:
-                if defect_type[0]:
-                    for defect in defect_type[0].split(','):
-                        defect = defect.strip()
-                        if defect and defect != "No defects" and defect not in [self.defect_combo.itemText(i) for i in range(self.defect_combo.count())]:
-                            self.defect_combo.addItem(defect)
-            
-            self.defect_combo.addItem("No defects")
-            
-            index = self.defect_combo.findText(current_selection)
-            if index >= 0:
-                self.defect_combo.setCurrentIndex(index)          
-        except Exception as e:
-            QMessageBox.warning(self, "Database Error", f"Error loading defect types: {str(e)}")
-    
     def refresh_data(self):
-        """Refresh data in the history table based on filters"""
+        """Refresh data with pagination"""
         try:
             date_from = self.date_from.date().toString("yyyy-MM-dd")
             date_to = self.date_to.date().addDays(1).toString("yyyy-MM-dd")
-            
             defect_filter = self.defect_combo.currentText()
-            rows = get_detections(date_from, date_to, defect_filter)
             
+            # Get paginated data
+            rows, total_count = get_detections_paginated(
+                date_from, date_to, defect_filter, 
+                self.current_page, self.page_size
+            )
+            
+            # Update pagination info
+            self.total_records = total_count
+            self.total_pages = (total_count + self.page_size - 1) // self.page_size if total_count > 0 else 1
+            
+            # Clear table
             self.history_table.setRowCount(0)
             
+            # Populate table with serial numbers
             for i, row in enumerate(rows):
                 rowid, time_str, img_raw, img_detect, defect, barcode = row
                 
                 self.history_table.insertRow(i)
-                self.history_table.setRowHeight(i, 50)  # Compact row height
+                self.history_table.setRowHeight(i, 70)  # Tăng chiều cao row lên 70px để chứa defects dài
                 
-                # ID
-                id_item = QTableWidgetItem(str(rowid))
-                id_item.setTextAlignment(Qt.AlignCenter)
-                self.history_table.setItem(i, 0, id_item)
+                # SERIAL NUMBER (hiển thị) - tính từ trang hiện tại
+                serial_number = (self.current_page - 1) * self.page_size + i + 1
+                serial_item = QTableWidgetItem(str(serial_number))
+                serial_item.setTextAlignment(Qt.AlignCenter)
+                # LƯU DATABASE ID VÀO DATA ROLE để dùng cho delete
+                serial_item.setData(Qt.UserRole, rowid)  # Store real database ID
+                self.history_table.setItem(i, 0, serial_item)
                 
-                # Time (shortened format)
-                time_item = QTableWidgetItem(time_str.split(' ')[1] if ' ' in time_str else time_str)  # Show only time
+                # Time - HIỂN THỊ ĐẦY ĐỦ HƠN
+                time_parts = time_str.split(' ')
+                if len(time_parts) >= 2:
+                    time_display = time_parts[1][:8]  # Lấy HH:MM:SS thay vì chỉ HH:MM
+                else:
+                    time_display = time_str[-8:]  # Lấy 8 ký tự cuối
+                
+                time_item = QTableWidgetItem(time_display)
                 time_item.setTextAlignment(Qt.AlignCenter)
-                time_item.setToolTip(time_str)  # Full datetime in tooltip
+                time_item.setToolTip(time_str)  # Full timestamp trong tooltip
                 self.history_table.setItem(i, 1, time_item)
                 
-                # Compact image thumbnails
-                for col, img_data in [(2, img_raw), (3, img_detect)]:
+                # Images with double-click - TĂNG KÍCH THƯỚC ẢNH
+                for col, img_data, img_type in [(2, img_raw, "img_raw"), (3, img_detect, "img_detect")]:
                     if img_data:
                         nparr = np.frombuffer(img_data, np.uint8)
                         img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
                         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-                        
-                        # Smaller thumbnails
-                        img = cv2.resize(img, (50, 38))
+                        img = cv2.resize(img, (90, 60))  # Tăng từ (70, 50) lên (90, 60) để fit 100px column
                         height, width, channel = img.shape
                         bytes_per_line = 3 * width
                         q_img = QImage(img.data, width, height, bytes_per_line, QImage.Format_RGB888)
                         pixmap = QPixmap.fromImage(q_img)
                         
-                        lbl = QLabel()
+                        lbl = ClickableImageLabel(rowid, img_type)  # Vẫn dùng database ID
                         lbl.setPixmap(pixmap)
-                        lbl.setAlignment(Qt.AlignCenter)
-                        lbl.setStyleSheet("border: 1px solid #dee2e6; border-radius: 3px;")
+                        lbl.double_clicked.connect(self.on_image_double_clicked)
+                        
                         self.history_table.setCellWidget(i, col, lbl)
                     else:
                         self.history_table.setItem(i, col, QTableWidgetItem("No image"))
                 
-                # Defect status with better formatting
-                defect_display = defect if defect else "None"
-                if len(defect_display) > 20:
-                    defect_display = defect_display[:17] + "..."
+                # Defects 
+                defect_display = defect if defect else "No defects"
                 
                 defect_item = QTableWidgetItem(defect_display)
                 defect_item.setToolTip(defect if defect else "No defects")
                 
                 if defect and defect.lower() != "no defects":
-                    defect_item.setBackground(QColor(255, 235, 238))  # Light red
+                    defect_item.setBackground(QColor(255, 235, 238))
                     defect_item.setForeground(QColor(183, 28, 28))
                 else:
-                    defect_item.setBackground(QColor(232, 245, 233))  # Light green
+                    defect_item.setBackground(QColor(232, 245, 233))
                     defect_item.setForeground(QColor(46, 125, 50))
-                    
+                
                 self.history_table.setItem(i, 4, defect_item)
                 
-                # Barcode
-                barcode_display = (barcode[:8] + "...") if barcode and len(barcode) > 8 else (barcode or "N/A")
+                # Barcode - HIỂN THỊ ĐẦY ĐỦ HƠN VÌ CÓ STRETCH
+                barcode_display = barcode if barcode else "N/A"
                 barcode_item = QTableWidgetItem(barcode_display)
+                barcode_item.setTextAlignment(Qt.AlignCenter)
                 barcode_item.setToolTip(barcode if barcode else "No barcode")
                 self.history_table.setItem(i, 5, barcode_item)
             
+            # Update pagination controls
+            self.update_pagination_controls();
+            
             # Update parent status
             if hasattr(self.parent, 'status_message'):
-                self.parent.status_message.setText(f"📊 Loaded {len(rows)} records")
+                start_record = (self.current_page - 1) * self.page_size + 1 if self.total_records > 0 else 0
+                end_record = min(self.current_page * self.page_size, self.total_records)
+                self.parent.status_message.setText(
+                    f"📊 Showing {start_record}-{end_record} of {self.total_records} records (Page {self.current_page}/{self.total_pages})"
+                )
             
             self.reset_details()
             self.populate_defect_types()
@@ -586,54 +519,104 @@ class DetectionHistoryTab(QWidget):
         except Exception as e:
             QMessageBox.warning(self, "Database Error", f"Error loading detection history: {str(e)}")
     
-    def on_selection_changed(self):
-        """Handle selection change in the table"""
-        selected_rows = self.history_table.selectedItems()
+    def update_pagination_controls(self):
+        """Update pagination button states and labels"""
+        # Update page info
+        self.page_info_label.setText(f"Page {self.current_page} of {self.total_pages}")
         
-        if selected_rows:
-            row = selected_rows[0].row()
-            
-            row_id = self.history_table.item(row, 0).text()
-            time_str = self.history_table.item(row, 1).toolTip() or self.history_table.item(row, 1).text()
-            defect = self.history_table.item(row, 4).toolTip() or self.history_table.item(row, 4).text()
-            barcode = self.history_table.item(row, 5).toolTip() or self.history_table.item(row, 5).text()
-            
-            # Update compact details
-            self.details_defect.setText(f"🔧 {defect[:15] + '...' if len(defect) > 15 else defect}")
-            self.details_time.setText(f"⏰ {time_str.split(' ')[0] if ' ' in time_str else time_str}")
-            self.details_barcode.setText(f"📦 {barcode[:8] + '...' if len(barcode) > 8 else barcode}")
-            
-            # Enable buttons
-            for btn in self.action_buttons:
-                btn.setEnabled(True)
-            
-            # Color coding for defect status
-            if defect.lower() != "no defects" and defect.lower() != "none":
-                self.details_defect.setStyleSheet("""
-                    QLabel {
-                        font-size: 11px;
-                        color: white;
-                        padding: 4px 8px;
-                        background: #dc3545;
-                        border-radius: 4px;
-                        margin: 2px;
-                        font-weight: bold;
-                    }
-                """)
-            else:
-                self.details_defect.setStyleSheet("""
-                    QLabel {
-                        font-size: 11px;
-                        color: white;
-                        padding: 4px 8px;
-                        background: #28a745;
-                        border-radius: 4px;
-                        margin: 2px;
-                        font-weight: bold;
-                    }
-                """)
+        # Update records info
+        start_record = (self.current_page - 1) * self.page_size + 1 if self.total_records > 0 else 0
+        end_record = min(self.current_page * self.page_size, self.total_records)
+        self.records_info_label.setText(f"Showing {start_record}-{end_record} of {self.total_records} records")
+        
+        # Update button states
+        self.first_page_btn.setEnabled(self.current_page > 1)
+        self.prev_page_btn.setEnabled(self.current_page > 1)
+        self.next_page_btn.setEnabled(self.current_page < self.total_pages)
+        self.last_page_btn.setEnabled(self.current_page < self.total_pages)
+    
+    # Pagination navigation methods
+    def go_to_first_page(self):
+        """Go to first page"""
+        if self.current_page != 1:
+            self.current_page = 1
+            self.refresh_data()
+    
+    def go_to_previous_page(self):
+        """Go to previous page"""
+        if self.current_page > 1:
+            self.current_page -= 1
+            self.refresh_data()
+    
+    def go_to_next_page(self):
+        """Go to next page"""
+        if self.current_page < self.total_pages:
+            self.current_page += 1
+            self.refresh_data()
+    
+    def go_to_last_page(self):
+        """Go to last page"""
+        if self.current_page != self.total_pages:
+            self.current_page = self.total_pages
+            self.refresh_data()
+    
+    @Slot(str)
+    def on_page_size_changed(self, new_size):
+        """Handle page size change"""
+        self.page_size = int(new_size)
+        self.current_page = 1  # Reset to first page
+        self.refresh_data()
+    
+    def set_date_range(self, days_back):
+        """Set date range for quick filters"""
+        today = QDate.currentDate()
+        self.date_to.setDate(today)
+        self.date_from.setDate(today.addDays(-days_back))
+        self.current_page = 1  # Reset to first page when filter changes
+        self.refresh_data()
+    
+    # Thêm method mới
+    def set_all_dates(self):
+        """Show all records regardless of date"""
+        self.date_from.setDate(QDate(1900, 1, 1))  # Very old date
+        self.date_to.setDate(QDate(2099, 12, 31))   # Very future date
+        self.current_page = 1  # Reset to first page
+        self.refresh_data()
+    
+    def delete_detection(self):
+        """Delete selected detection from database and refresh current page"""
+        database_id = self.get_selected_row_id()
+        if database_id is None:
+            return
+        
+        # Get serial number for display
+        selected_items = self.history_table.selectedItems()
+        if selected_items:
+            row = selected_items[0].row()
+            serial_number = self.history_table.item(row, 0).text()
         else:
-            self.reset_details()
+            serial_number = "Unknown"
+            
+        reply = QMessageBox.question(
+            self, "Confirm Deletion",
+            f"Are you sure you want to delete detection #{serial_number}?\n\n(Database ID: {database_id})",
+            QMessageBox.Yes | QMessageBox.No, QMessageBox.No
+        )
+        
+        if reply == QMessageBox.Yes:
+            try:
+                delete_detection_from_db(database_id)  # Use real database ID
+                
+                if hasattr(self.parent, 'status_message'):
+                    self.parent.status_message.setText(f"🗑️ Detection #{serial_number} deleted (DB ID: {database_id})")
+                
+                # Check if current page becomes empty after deletion
+                if self.history_table.rowCount() == 1 and self.current_page > 1:
+                    self.current_page -= 1  # Go to previous page if current page becomes empty
+                
+                self.refresh_data()
+            except Exception as e:
+                QMessageBox.warning(self, "Delete Error", f"Error deleting detection: {str(e)}")
     
     def reset_details(self):
         """Reset detail view when no row is selected"""
@@ -641,27 +624,22 @@ class DetectionHistoryTab(QWidget):
         self.details_time.setText("⏰ None selected")
         self.details_barcode.setText("📦 None selected")
         
+        defect_styles = HistoryTabStyles.get_defect_status_styles()
         for label in [self.details_defect, self.details_time, self.details_barcode]:
-            label.setStyleSheet("""
-                QLabel {
-                    font-size: 11px;
-                    color: #495057;
-                    padding: 4px 8px;
-                    background: #f8f9fa;
-                    border-radius: 4px;
-                    margin: 2px;
-                }
-            """)
+            label.setStyleSheet(defect_styles['none_selected'])
         
         for btn in self.action_buttons:
             btn.setEnabled(False)
     
     def get_selected_row_id(self):
-        """Get the database ID from selected row"""
+        """Get the real database ID from selected row (stored in UserRole)"""
         selected_items = self.history_table.selectedItems()
         if selected_items:
             row = selected_items[0].row()
-            return int(self.history_table.item(row, 0).text())
+            # Lấy database ID từ UserRole của cột đầu tiên
+            id_item = self.history_table.item(row, 0)
+            if id_item:
+                return id_item.data(Qt.UserRole)  # Returns real database rowid
         return None
     
     def get_image_data(self, row_id, image_type):
@@ -672,47 +650,32 @@ class DetectionHistoryTab(QWidget):
             QMessageBox.warning(self, "Database Error", f"Error retrieving image: {str(e)}")
             return None
     
-    def view_raw_image(self):
-        """View raw image in popup dialog"""
-        row_id = self.get_selected_row_id()
-        if row_id is not None:
-            img_data = self.get_image_data(row_id, "img_raw")
-            if img_data:
-                dialog = ImageViewDialog(img_data, "Raw Image", self)
-                dialog.exec_()
-    
-    def view_detection_image(self):
-        """View detection image in popup dialog"""
-        row_id = self.get_selected_row_id()
-        if row_id is not None:
-            img_data = self.get_image_data(row_id, "img_detect")
-            if img_data:
-                dialog = ImageViewDialog(img_data, "Detection Image", self)
-                dialog.exec_()
-    
     def export_detection(self):
         """Export detection data to files"""
-        row_id = self.get_selected_row_id()
-        if row_id is None:
+        database_id = self.get_selected_row_id()
+        if database_id is None:
+            QMessageBox.information(self, "No Selection", "Please select a detection record to export.")
             return
+        
+        # Get serial number for display
+        selected_items = self.history_table.selectedItems()
+        if selected_items:
+            row = selected_items[0].row()
+            serial_number = self.history_table.item(row, 0).text()
+        else:
+            serial_number = "Unknown"
             
         try:
-            conn = sqlite3.connect('sqlite_database/db/detections.db')
-            cursor = conn.cursor()
+            # SỬ DỤNG FUNCTION MỚI TỪ DB_OPERATIONS
+            detection_data = get_detection_for_export(database_id)
             
-            cursor.execute(
-                "SELECT time, img_raw, img_detect, defect, barcode FROM detections WHERE rowid = ?", 
-                (row_id,)
-            )
-            result = cursor.fetchone()
-            conn.close()
-            
-            if not result:
-                QMessageBox.warning(self, "Error", "Detection record not found")
+            if not detection_data:
+                QMessageBox.warning(self, "Error", f"Detection record not found (DB ID: {database_id})")
                 return
                 
-            time_str, img_raw, img_detect, defect, barcode = result
+            time_str, img_raw, img_detect, defect, barcode = detection_data
             
+            # Chọn thư mục export
             export_dir = QFileDialog.getExistingDirectory(
                 self, "Select Directory for Export", "",
                 QFileDialog.ShowDirsOnly | QFileDialog.DontResolveSymlinks
@@ -721,28 +684,56 @@ class DetectionHistoryTab(QWidget):
             if not export_dir:
                 return
                 
+            # Tạo tên file an toàn
             safe_time = time_str.replace(":", "-").replace(" ", "_")
-            filename_base = f"detection_{row_id}_{safe_time}"
+            filename_base = f"detection_serial_{serial_number}_db_{database_id}_{safe_time}"
+            
+            # Export images
+            exported_files = []
             
             if img_raw:
-                self.save_image_data(img_raw, os.path.join(export_dir, f"{filename_base}_raw.png"))
+                raw_path = os.path.join(export_dir, f"{filename_base}_raw.png")
+                self.save_image_data(img_raw, raw_path)
+                exported_files.append(f"{filename_base}_raw.png")
                 
             if img_detect:
-                self.save_image_data(img_detect, os.path.join(export_dir, f"{filename_base}_detect.png"))
+                detect_path = os.path.join(export_dir, f"{filename_base}_detect.png")
+                self.save_image_data(img_detect, detect_path)
+                exported_files.append(f"{filename_base}_detect.png")
                 
-            with open(os.path.join(export_dir, f"{filename_base}_info.txt"), 'w') as f:
-                f.write(f"Detection ID: {row_id}\n")
-                f.write(f"Time: {time_str}\n")
-                f.write(f"Defects: {defect}\n")
-                f.write(f"Barcode: {barcode}\n")
+            # Export info file
+            info_path = os.path.join(export_dir, f"{filename_base}_info.txt")
+            with open(info_path, 'w', encoding='utf-8') as f:
+                f.write(f"Detection Export Report\n")
+                f.write(f"=" * 50 + "\n\n")
+                f.write(f"Serial Number: #{serial_number}\n")
+                f.write(f"Database ID: {database_id}\n")
+                f.write(f"Timestamp: {time_str}\n")
+                f.write(f"Defects: {defect or 'No defects'}\n")
+                f.write(f"Barcode: {barcode or 'No barcode'}\n\n")
+                f.write(f"Exported Files:\n")
+                for file in exported_files:
+                    f.write(f"- {file}\n")
+                f.write(f"\nExport Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
             
+            exported_files.append(f"{filename_base}_info.txt")
+            
+            # Hiển thị thông báo thành công
+            files_list = "\n".join([f"• {file}" for file in exported_files])
             QMessageBox.information(
                 self, "Export Complete", 
-                f"Detection data exported successfully to {export_dir}"
+                f"Detection #{serial_number} exported successfully!\n\n"
+                f"Location: {export_dir}\n\n"
+                f"Files created:\n{files_list}"
             )
+            
+            # Cập nhật status
+            if hasattr(self.parent, 'status_message'):
+                self.parent.status_message.setText(f"📤 Detection #{serial_number} exported to {export_dir}")
             
         except Exception as e:
             QMessageBox.warning(self, "Export Error", f"Error exporting detection: {str(e)}")
+            print(f"Export error details: {e}")
     
     def save_image_data(self, img_data, filepath):
         """Save image data to file"""
@@ -750,25 +741,128 @@ class DetectionHistoryTab(QWidget):
         img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
         cv2.imwrite(filepath, img)
     
-    def delete_detection(self):
-        """Delete selected detection from database"""
-        row_id = self.get_selected_row_id()
-        if row_id is None:
-            return
+    def on_selection_changed(self):
+        """Handle table selection change"""
+        selected_items = self.history_table.selectedItems()
+        if selected_items:
+            row = selected_items[0].row()
             
-        reply = QMessageBox.question(
-            self, "Confirm Deletion",
-            f"Are you sure you want to delete detection #{row_id}?",
-            QMessageBox.Yes | QMessageBox.No, QMessageBox.No
-        )
+            # Get data from selected row
+            id_item = self.history_table.item(row, 0)
+            serial_number = id_item.text()  # Serial number for display
+            database_id = id_item.data(Qt.UserRole)  # Real database ID
+            
+            time_str = self.history_table.item(row, 1).toolTip()  # Full timestamp from tooltip
+            defect_item = self.history_table.item(row, 4)
+            defect = defect_item.toolTip() if defect_item else "No defects"
+            barcode_item = self.history_table.item(row, 5)
+            barcode = barcode_item.toolTip() if barcode_item else "No barcode"
+            
+            # Update detail labels với serial number
+            self.details_defect.setText(f"🔧 Defect: {defect}")
+            self.details_time.setText(f"⏰ Time: {time_str}")
+            self.details_barcode.setText(f"📦 Barcode: {barcode} | Serial: #{serial_number}")
+            
+            # Style based on defect status
+            defect_styles = HistoryTabStyles.get_defect_status_styles()
+            if defect and defect.lower() != "no defects":
+                for label in [self.details_defect, self.details_time, self.details_barcode]:
+                    label.setStyleSheet(defect_styles['failed'])
+            else:
+                for label in [self.details_defect, self.details_time, self.details_barcode]:
+                    label.setStyleSheet(defect_styles['passed'])
+            
+            # Enable action buttons
+            for btn in self.action_buttons:
+                btn.setEnabled(True)
+        else:
+            self.reset_details()
+    
+    def on_image_double_clicked(self, row_id, image_type):
+        """Handle image double-click to show full view"""
+        try:
+            image_data = self.get_image_data(row_id, image_type)
+            if image_data:
+                title = f"Detection #{row_id} - {'Raw Image' if image_type == 'img_raw' else 'Detection Result'}"
+                dialog = ImageViewDialog(image_data, title, self)
+                dialog.exec()
+            else:
+                QMessageBox.warning(self, "No Image", "No image data available for this record.")
+        except Exception as e:
+            QMessageBox.warning(self, "Error", f"Error loading image: {str(e)}")
+    
+    def populate_defect_types(self):
+        """Populate defect type combo box"""
+        try:
+            current_selection = self.defect_combo.currentText()
+            self.defect_combo.clear()
+            self.defect_combo.addItem("All")
+            
+            defect_types = get_defect_types()
+            unique_defects = set()
+            
+            for row in defect_types:
+                defect = row[0]
+                if defect and defect.strip():
+                    # Split multiple defects and add each
+                    for single_defect in defect.split(','):
+                        single_defect = single_defect.strip()
+                        if single_defect and single_defect not in unique_defects:
+                            unique_defects.add(single_defect)
+            
+            # Add sorted unique defects
+            for defect in sorted(unique_defects):
+                self.defect_combo.addItem(defect)
+            
+            # Restore previous selection if it exists
+            index = self.defect_combo.findText(current_selection)
+            if index >= 0:
+                self.defect_combo.setCurrentIndex(index)
+                
+        except Exception as e:
+            print(f"Error populating defect types: {e}")
+    
+    def add_new_record(self, row_id):
+        """
+        Thêm record mới vào đầu table thay vì refresh toàn bộ
         
-        if reply == QMessageBox.Yes:
-            try:
-                delete_detection_from_db(row_id)
-                
-                if hasattr(self.parent, 'status_message'):
-                    self.parent.status_message.setText(f"🗑️ Detection #{row_id} deleted")
-                
-                self.refresh_data()
-            except Exception as e:
-                QMessageBox.warning(self, "Delete Error", f"Error deleting detection: {str(e)}")
+        Args:
+            row_id (int): ID của record mới được tạo
+        """
+        try:
+            from sqlite_database.src.db_operations import get_detection_summary
+            
+            # Lấy thông tin record mới
+            record_data = get_detection_summary(row_id)
+            if not record_data:
+                print(f"Cannot find record {row_id}")
+                return
+            
+            time_str, defect, barcode = record_data
+            
+            # Thêm row mới vào đầu table
+            self.history_table.insertRow(0)
+            
+            # Set data cho row mới
+            self.history_table.setItem(0, 0, QTableWidgetItem(str(row_id)))
+            self.history_table.setItem(0, 1, QTableWidgetItem(time_str))
+            self.history_table.setItem(0, 2, QTableWidgetItem(defect or "No defects"))
+            self.history_table.setItem(0, 3, QTableWidgetItem(barcode or "N/A"))
+            
+            # Highlight row mới với màu khác biệt
+            for col in range(self.history_table.columnCount()):
+                item = self.history_table.item(0, col)
+                if item:
+                    item.setBackground(QColor(230, 247, 255))  # Light blue highlight
+            
+            # Cập nhật pagination info
+            if hasattr(self, 'records_info_label'):
+                current_count = self.history_table.rowCount()
+                self.records_info_label.setText(f"📊 Total: {current_count} records")
+            
+            print(f"✅ Record {row_id} added to history table")
+            
+        except Exception as e:
+            print(f"Error adding new record: {e}")
+            # Fallback to full refresh nếu có lỗi
+            self.refresh_data()

@@ -15,6 +15,7 @@ from sqlite_database.src.db_operations import update_detection_in_db, create_dat
 # Import barcode detector
 from app.barcode.detector import read_from_scanner_pynput
 import threading
+from app.ui.styles import AppStyles
 
 class BarcodeThread(QThread):
     """Thread for running barcode scanner in background"""
@@ -63,33 +64,7 @@ class AnimatedButton(QPushButton):
     """Custom button with hover animations"""
     def __init__(self, text, parent=None):
         super().__init__(text, parent)
-        self.setStyleSheet("""
-            QPushButton {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #4a86e8, stop:1 #3a76d8);
-                color: white;
-                border: none;
-                border-radius: 8px;
-                padding: 12px 20px;
-                font-weight: bold;
-                font-size: 14px;
-                min-height: 20px;
-            }
-            QPushButton:hover {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #5a96f8, stop:1 #4a86e8);
-                transform: translateY(-1px);
-            }
-            QPushButton:pressed {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #2a66c8, stop:1 #1a56b8);
-                transform: translateY(1px);
-            }
-            QPushButton:disabled {
-                background: #cccccc;
-                color: #666666;
-            }
-        """)
+        self.setStyleSheet(AppStyles.get_button_style())
         
         # Add shadow effect
         shadow = QGraphicsDropShadowEffect()
@@ -104,69 +79,72 @@ class StatusCard(QFrame):
     def __init__(self, title, value, color="#4a86e8", parent=None):
         super().__init__(parent)
         self.setFrameStyle(QFrame.Box)
-        self.setStyleSheet(f"""
-            QFrame {{
-                background: white;
-                border: 1px solid #e0e6ed;
-                border-radius: 12px;
-                padding: 16px;
-            }}
-        """)
+        self.setStyleSheet(AppStyles.get_status_card_style())
         
         # Add shadow
         shadow = QGraphicsDropShadowEffect()
-        shadow.setBlurRadius(15)
+        shadow.setBlurRadius(8)
         shadow.setXOffset(0)
-        shadow.setYOffset(3)
-        shadow.setColor(QColor(0, 0, 0, 30))
+        shadow.setYOffset(1)
+        shadow.setColor(QColor(0, 0, 0, 15))
         self.setGraphicsEffect(shadow)
         
         layout = QVBoxLayout(self)
-        layout.setSpacing(8)
+        layout.setSpacing(2)  # Giảm spacing
+        layout.setContentsMargins(4, 4, 4, 4)  # Giảm margins
         
         # Title
         title_label = QLabel(title)
-        title_label.setStyleSheet(f"""
-            QLabel {{
-                color: #666;
-                font-size: 14px;
-                font-weight: 500;
-                margin: 0;
-            }}
-        """)
+        title_label.setStyleSheet(AppStyles.get_status_card_title_style())
+        title_label.setAlignment(Qt.AlignCenter)
+        title_label.setWordWrap(True)
         layout.addWidget(title_label)
         
         # Value
         self.value_label = QLabel(value)
-        self.value_label.setStyleSheet(f"""
-            QLabel {{
-                color: {color};
-                font-size: 28px;
-                font-weight: bold;
-                margin: 0;
-            }}
-        """)
+        self.value_label.setStyleSheet(AppStyles.get_status_card_value_style(color))
+        self.value_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.value_label)
         
     def update_value(self, value, color=None):
         self.value_label.setText(str(value))
         if color:
-            self.value_label.setStyleSheet(f"""
-                QLabel {{
-                    color: {color};
-                    font-size: 28px;
-                    font-weight: bold;
-                    margin: 0;
-                }}
-            """)
+            self.value_label.setStyleSheet(AppStyles.get_status_card_value_style(color))
+
+class MiniStatusCard(QFrame):
+    """Compact status card widget"""
+    def __init__(self, title, value, color="#4a86e8", parent=None):
+        super().__init__(parent)
+        self.setFixedSize(100, 95) 
+        self.setStyleSheet(AppStyles.get_status_card_style())
+        
+        # Layout chính
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(6, 8, 6, 6)  # Tăng padding top từ 6 lên 8
+        layout.setSpacing(3)  # Tăng spacing từ 2 lên 3
+        
+        # Title
+        title_label = QLabel(title)
+        title_label.setStyleSheet(AppStyles.get_status_card_title_style())
+        title_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(title_label)
+        
+        # Value
+        self.value_label = QLabel(value)
+        self.value_label.setStyleSheet(AppStyles.get_status_card_value_style(color))
+        self.value_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(self.value_label)
+        
+    def update_value(self, value, color=None):
+        """Update the value and optionally the color"""
+        self.value_label.setText(str(value))
+        if color:
+            self.value_label.setStyleSheet(AppStyles.get_status_card_value_style(color))
 
 class DefectDetectionApp(QMainWindow):
     def __init__(self):
         super().__init__()
         
-        # Initialize attributes early
-        self.last_captured_path = None
-        self.current_raw_image = None
         self.history_needs_refresh = False
         self.history_loaded = False 
         self.processing_timer = QTimer()
@@ -180,8 +158,82 @@ class DefectDetectionApp(QMainWindow):
         
         self.init_UI()
         # Start with test image if available
-        self.test_img_path = "storage/captured_images/captured_image_20250514_114617.png"
+        # self.test_img_path = "storage/captured_images/captured_image_20250514_114617.png"
+    
+    def init_UI(self):
+        """Initialize the main UI"""
+        # Window configuration
+        self.setWindowTitle("🔍 Defect Detection System")
+        self.setMinimumSize(1400, 900)
+        self.showMaximized()
         
+        # Apply main window style
+        self.setStyleSheet(AppStyles.get_main_window_style())
+        
+        # Create central widget
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
+        
+        # Main layout
+        main_layout = QVBoxLayout(central_widget)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
+        
+        # Setup status bar
+        self.setup_status_bar()
+        
+        # Create tab widget
+        self.tab_widget = QTabWidget()
+        self.tab_widget.setStyleSheet(AppStyles.get_main_window_style())
+        
+        # Create tabs
+        self.live_detection_tab = QWidget()
+        self.history_tab = DetectionHistoryTab()
+        
+        # Add tabs
+        self.tab_widget.addTab(self.live_detection_tab, "🎯 Live Detection")
+        self.tab_widget.addTab(self.history_tab, "📊 Detection History")
+        
+        # Setup tabs
+        self.setup_live_detection_tab()
+        
+        # Add tab widget to main layout
+        main_layout.addWidget(self.tab_widget)
+        
+        # Setup timer for status updates
+        self.status_timer = QTimer()
+        self.status_timer.timeout.connect(self.update_status_bar)
+        self.status_timer.start(1000)  # Update every second
+        
+        # Initial status update
+        self.update_status_bar()
+    
+    def setup_status_bar(self):
+        """Setup modern status bar"""
+        self.statusBar = QStatusBar()
+        self.statusBar.setStyleSheet(AppStyles.get_status_bar_style())
+        self.setStatusBar(self.statusBar)
+        
+        # Status message
+        self.status_message = QLabel("🟢 Ready")
+        self.status_message.setStyleSheet("padding: 4px 8px; font-weight: 500;")
+        self.statusBar.addWidget(self.status_message)
+        
+        # Add stretch
+        self.statusBar.addWidget(QLabel(), 1)
+        
+        # Progress bar (hidden by default)
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setVisible(False)
+        self.progress_bar.setStyleSheet(AppStyles.get_progress_bar_style())
+        self.progress_bar.setMaximumWidth(200)
+        self.statusBar.addPermanentWidget(self.progress_bar)
+        
+        # Version info
+        version_label = QLabel("Đại học Bách Khoa Hà Nội - 2025")
+        version_label.setStyleSheet("color: #6c757d; font-size: 12px; padding: 4px 8px;")
+        self.statusBar.addPermanentWidget(version_label)
+
     def init_barcode_scanner(self):
         """Initialize barcode scanner in background thread"""
         self.barcode_thread = BarcodeThread()
@@ -203,243 +255,29 @@ class DefectDetectionApp(QMainWindow):
         """Show visual notification when barcode is scanned"""
         # Create a temporary status message
         original_style = self.status_message.styleSheet()
-        self.status_message.setStyleSheet("""
-            QLabel {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #d4edda, stop:1 #c3e6cb);
-                color: #155724;
-                border: 1px solid #c3e6cb;
-                border-radius: 4px;
-                padding: 4px 8px;
-                font-weight: bold;
-            }
-        """)
+        self.status_message.setStyleSheet(AppStyles.get_barcode_notification_style())
         
         # Reset style after 3 seconds
         QTimer.singleShot(3000, lambda: self.status_message.setStyleSheet(original_style))
 
-    def init_UI(self):
-        # Window configuration
-        self.setWindowTitle("🔍 Defect Detection System v2.0")
-        self.setMinimumSize(1400, 900)
-        self.showMaximized()
-        
-        # Modern application style
-        self.setStyleSheet("""
-            QMainWindow {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-                    stop:0 #f8f9fa, stop:1 #e9ecef);
-            }
-            QLabel {
-                font-family: 'Segoe UI', 'San Francisco', Arial;
-                color: #2c3e50;
-            }
-            QGroupBox {
-                font-weight: 600;
-                font-size: 16px;
-                color: #2c3e50;
-                border: 2px solid #e0e6ed;
-                border-radius: 12px;
-                margin-top: 20px;
-                padding-top: 20px;
-                background: rgba(255, 255, 255, 0.9);
-            }
-            QGroupBox::title {
-                subcontrol-origin: margin;
-                subcontrol-position: top left;
-                padding: 8px 16px;
-                background: white;
-                border-radius: 6px;
-                margin-left: 10px;
-            }
-            QTabWidget::pane {
-                border: 1px solid #dee2e6;
-                border-radius: 12px;
-                background: white;
-                margin-top: 5px;
-            }
-            QTabBar::tab {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #ffffff, stop:1 #f8f9fa);
-                border: 1px solid #dee2e6;
-                border-bottom: none;
-                border-top-left-radius: 8px;
-                border-top-right-radius: 8px;
-                padding: 12px 24px;
-                margin-right: 4px;
-                font-weight: 500;
-                font-size: 14px;
-                color: #495057;
-                min-width: 120px;
-            }
-            QTabBar::tab:selected {
-                background: white;
-                border-bottom: 2px solid #4a86e8;
-                color: #4a86e8;
-                font-weight: 600;
-            }
-            QTabBar::tab:hover:!selected {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #f8f9fa, stop:1 #e9ecef);
-            }
-            QScrollArea {
-                border: none;
-                background: transparent;
-            }
-            QListWidget {
-                background: white;
-                border: 1px solid #e0e6ed;
-                border-radius: 8px;
-                padding: 8px;
-                font-size: 14px;
-            }
-            QListWidget::item {
-                padding: 12px;
-                margin: 4px 0;
-                border-radius: 6px;
-                border: 1px solid transparent;
-            }
-            QListWidget::item:selected {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #e3f2fd, stop:1 #bbdefb);
-                border: 1px solid #4a86e8;
-                color: #1976d2;
-            }
-            QListWidget::item:hover {
-                background: #f5f5f5;
-            }
-        """)
-        
-        # Create main tab widget
-        self.tab_widget = QTabWidget()
-        self.tab_widget.setTabPosition(QTabWidget.North)
-        self.setCentralWidget(self.tab_widget)
-        self.tab_widget.currentChanged.connect(self.on_tab_changed)
-        
-        # Live detection tab
-        self.live_detection_tab = QWidget()
-        self.tab_widget.addTab(self.live_detection_tab, "📹 Live Detection")
-        
-        # Setup live detection UI
-        self.setup_live_detection_tab()
-        
-        # History tab
-        self.history_tab = DetectionHistoryTab(self)
-        self.tab_widget.addTab(self.history_tab, "📊 Detection History")
-        
-        # Create modern status bar
-        self.setup_status_bar()
-        
-        # Create a timer for updating the status bar time
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.update_status_bar)
-        self.timer.start(1000)  # Update every second
-        
-        # Initial status update
-        self.update_status_bar()
-    
-    def setup_status_bar(self):
-        """Setup modern status bar"""
-        self.statusBar = QStatusBar()
-        self.statusBar.setStyleSheet("""
-            QStatusBar {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #ffffff, stop:1 #f8f9fa);
-                border-top: 1px solid #dee2e6;
-                padding: 8px;
-                font-size: 13px;
-                color: #495057;
-            }
-        """)
-        self.setStatusBar(self.statusBar)
-        
-        # Status message with icon
-        self.status_message = QLabel("🟢 Ready | 🔍 Barcode scanner active")
-        self.status_message.setStyleSheet("font-weight: 500;")
-        self.statusBar.addWidget(self.status_message)
-        
-        # Progress bar (hidden by default)
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setVisible(False)
-        self.progress_bar.setStyleSheet("""
-            QProgressBar {
-                border: 1px solid #dee2e6;
-                border-radius: 8px;
-                text-align: center;
-                font-weight: bold;
-                background: #f8f9fa;
-                height: 20px;
-            }
-            QProgressBar::chunk {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #4a86e8, stop:1 #3a76d8);
-                border-radius: 7px;
-            }
-        """)
-        self.statusBar.addPermanentWidget(self.progress_bar)
-        
-        # Barcode status
-        self.barcode_status = QLabel("📦 Scanner: Active")
-        self.barcode_status.setStyleSheet("color: #28a745; font-weight: 500;")
-        self.statusBar.addPermanentWidget(self.barcode_status)
-        
-        # Connection status
-        self.connection_status = QLabel("🔗 Database Connected")
-        self.connection_status.setStyleSheet("color: #28a745; font-weight: 500;")
-        self.statusBar.addPermanentWidget(self.connection_status)
-
-    def on_tab_changed(self, index):
-        """Load history tab data only once."""
-        if self.tab_widget.tabText(index) == "📊 Detection History" and not self.history_loaded:
-            self.history_tab.refresh_data()
-            self.history_loaded = True  # Mark as loaded
-
     def setup_live_detection_tab(self):
         """Setup the enhanced UI for live detection tab"""
-        # Main scroll area
-        scroll = QScrollArea()
-        scroll_widget = QWidget()
-        scroll.setWidget(scroll_widget)
-        scroll.setWidgetResizable(True)
-        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-        
-        main_layout = QVBoxLayout(scroll_widget)
+        main_layout = QVBoxLayout(self.live_detection_tab)
         main_layout.setContentsMargins(24, 24, 24, 24)
         main_layout.setSpacing(20)
         
         # === Header Section ===
         header_frame = QFrame()
-        header_frame.setStyleSheet("""
-            QFrame {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #667eea, stop:1 #764ba2);
-                border-radius: 16px;
-                padding: 20px;
-            }
-        """)
+        header_frame.setStyleSheet(AppStyles.get_header_frame_style())
         header_layout = QHBoxLayout(header_frame)
         
         # Title and subtitle
         title_layout = QVBoxLayout()
         title_label = QLabel("Quality Control Station")
-        title_label.setStyleSheet("""
-            QLabel {
-                color: white;
-                font-size: 28px;
-                font-weight: bold;
-                margin: 0;
-            }
-        """)
+        title_label.setStyleSheet(AppStyles.get_header_title_style())
         
         subtitle_label = QLabel("Real-time defect detection and analysis")
-        subtitle_label.setStyleSheet("""
-            QLabel {
-                color: rgba(255, 255, 255, 0.8);
-                font-size: 16px;
-                margin: 0;
-            }
-        """)
+        subtitle_label.setStyleSheet(AppStyles.get_header_subtitle_style())
         
         title_layout.addWidget(title_label)
         title_layout.addWidget(subtitle_label)
@@ -451,15 +289,19 @@ class DefectDetectionApp(QMainWindow):
         # === Stats Cards Section ===
         stats_frame = QFrame()
         stats_layout = QHBoxLayout(stats_frame)
-        stats_layout.setSpacing(16)
+        stats_layout.setContentsMargins(0, 0, 0, 0)
+        stats_layout.setSpacing(8)
         
-        self.total_defects_card = StatusCard("Total Defects", "0", "#e74c3c")
-        self.defect_types_card = StatusCard("Defect Types", "0", "#f39c12")
-        self.status_card = StatusCard("Status", "Ready", "#27ae60")
+        # Tạo cards mới với kích thước nhỏ
+        self.total_defects_card = MiniStatusCard("Defects", "0", "#dc3545")
+        self.defect_types_card = MiniStatusCard("Types", "0", "#fd7e14")
+        self.status_card = MiniStatusCard("Status", "Ready", "#28a745")
         
+        # Thêm cards vào layout
         stats_layout.addWidget(self.total_defects_card)
         stats_layout.addWidget(self.defect_types_card)
         stats_layout.addWidget(self.status_card)
+        stats_layout.addStretch()
         
         main_layout.addWidget(stats_frame)
         
@@ -473,68 +315,28 @@ class DefectDetectionApp(QMainWindow):
         
         # Enhanced image preview group
         image_group = QGroupBox("📷 Live Camera Feed")
-        image_group.setStyleSheet("""
-            QGroupBox {
-                font-size: 18px;
-                font-weight: 600;
-                color: #2c3e50;
-                border: 2px solid #3498db;
-            }
-            QGroupBox::title {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #3498db, stop:1 #2980b9);
-                color: white;
-                padding: 8px 20px;
-                border-radius: 8px;
-            }
-        """)
+        image_group.setStyleSheet(AppStyles.get_image_group_style())
         image_group_layout = QVBoxLayout(image_group)
         
         # Enhanced image display
         self.image_frame = QFrame()
         self.image_frame.setFrameShape(QFrame.StyledPanel)
-        self.image_frame.setStyleSheet("""
-            QFrame {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-                    stop:0 #ffffff, stop:1 #f8f9fa);
-                border: 3px dashed #bdc3c7;
-                border-radius: 16px;
-                min-height: 400px;
-            }
-        """)
+        self.image_frame.setStyleSheet(AppStyles.get_image_frame_style())
         image_frame_layout = QVBoxLayout(self.image_frame)
         
         self.lblImage = QLabel("🎯 Captured image will appear here\n\nClick 'Capture Image' to start quality inspection")
         self.lblImage.setAlignment(Qt.AlignCenter)
         self.lblImage.setMinimumSize(700, 500)
-        self.lblImage.setStyleSheet("""
-            QLabel {
-                font-size: 18px;
-                color: #7f8c8d;
-                background: transparent;
-                padding: 40px;
-                line-height: 1.6;
-            }
-        """)
+        self.lblImage.setStyleSheet(AppStyles.get_image_label_style())
         image_frame_layout.addWidget(self.lblImage)
         
         image_group_layout.addWidget(self.image_frame)
-        
-        # Enhanced image info
-        self.image_info = QLabel("📊 No image loaded")
-        self.image_info.setStyleSheet("""
-            QLabel {
-                font-size: 14px;
-                color: #34495e;
-                background: rgba(52, 152, 219, 0.1);
-                padding: 12px;
-                border-radius: 8px;
-                font-weight: 500;
-            }
-        """)
-        image_group_layout.addWidget(self.image_info)
-        
         image_layout.addWidget(image_group)
+        self.image_info = QLabel("📊 No image loaded")
+        self.image_info.setStyleSheet(AppStyles.get_image_info_style())
+        self.image_info.setAlignment(Qt.AlignCenter)
+        self.image_info.setFixedHeight(40)
+        image_layout.addWidget(self.image_info)  # Thêm vào image_layout, ngoài GroupBox
         
         # === Right side: Enhanced Results area ===
         self.results_container = QWidget()
@@ -542,47 +344,12 @@ class DefectDetectionApp(QMainWindow):
         
         # Enhanced results group
         results_group = QGroupBox("🔍 Analysis Results")
-        results_group.setStyleSheet("""
-            QGroupBox {
-                font-size: 18px;
-                font-weight: 600;
-                color: #2c3e50;
-                border: 2px solid #e74c3c;
-            }
-            QGroupBox::title {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #e74c3c, stop:1 #c0392b);
-                color: white;
-                padding: 8px 20px;
-                border-radius: 8px;
-            }
-        """)
+        results_group.setStyleSheet(AppStyles.get_results_group_style())
         results_group_layout = QVBoxLayout(results_group)
         
         # Enhanced results list
         self.lstResult = QListWidget()
-        self.lstResult.setStyleSheet("""
-            QListWidget {
-                background: white;
-                border: 2px solid #ecf0f1;
-                border-radius: 12px;
-                padding: 16px;
-                font-size: 15px;
-                min-height: 300px;
-            }
-            QListWidget::item {
-                padding: 16px;
-                margin: 6px 0;
-                border-radius: 8px;
-                border-left: 4px solid transparent;
-            }
-            QListWidget::item:selected {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #e8f4fd, stop:1 #d4edda);
-                border-left: 4px solid #3498db;
-                color: #2c3e50;
-            }
-        """)
+        self.lstResult.setStyleSheet(AppStyles.get_results_list_style())
         results_group_layout.addWidget(self.lstResult)
         
         # Enhanced result indicator
@@ -591,19 +358,7 @@ class DefectDetectionApp(QMainWindow):
         self.result_indicator.setWordWrap(True)
         self.result_indicator.setMinimumHeight(60)
         self.result_indicator.setMaximumHeight(120)
-        self.result_indicator.setStyleSheet("""
-            QLabel {
-                font-size: 14px;
-                font-weight: bold;
-                border-radius: 12px;
-                padding: 16px;
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #f8f9fa, stop:1 #e9ecef);
-                border: 2px solid #dee2e6;
-                color: #6c757d;
-                max-height: 120px;
-            }
-        """)
+        self.result_indicator.setStyleSheet(AppStyles.get_result_indicator_styles()['waiting'])
         results_group_layout.addWidget(self.result_indicator)
         
         results_layout.addWidget(results_group)
@@ -618,14 +373,7 @@ class DefectDetectionApp(QMainWindow):
         
         # === Enhanced Controls Section ===
         controls_frame = QFrame()
-        controls_frame.setStyleSheet("""
-            QFrame {
-                background: white;
-                border: 1px solid #e0e6ed;
-                border-radius: 16px;
-                padding: 20px;
-            }
-        """)
+        controls_frame.setStyleSheet(AppStyles.get_controls_frame_style())
         
         # Add shadow to controls
         shadow = QGraphicsDropShadowEffect()
@@ -644,16 +392,7 @@ class DefectDetectionApp(QMainWindow):
         
         self.btnClear = AnimatedButton("🧹 Clear Results")
         self.btnClear.setMinimumSize(150, 50)
-        self.btnClear.setStyleSheet("""
-            QPushButton {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #95a5a6, stop:1 #7f8c8d);
-            }
-            QPushButton:hover {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #a5b5b6, stop:1 #8f9c9d);
-            }
-        """)
+        self.btnClear.setStyleSheet(AppStyles.get_clear_button_style())
         self.btnClear.clicked.connect(self.clear_results)
         
         controls_layout.addWidget(self.btnCapture)
@@ -662,10 +401,11 @@ class DefectDetectionApp(QMainWindow):
         
         main_layout.addWidget(controls_frame)
         
-        # Set the scroll area as the tab's main widget
-        tab_layout = QVBoxLayout(self.live_detection_tab)
-        tab_layout.setContentsMargins(0, 0, 0, 0)
-        tab_layout.addWidget(scroll)
+        # BỎ PHẦN SCROLL AREA WRAPPER - sử dụng layout trực tiếp trên tab
+        # Không cần:
+        # tab_layout = QVBoxLayout(self.live_detection_tab)
+        # tab_layout.setContentsMargins(0, 0, 0, 0)
+        # tab_layout.addWidget(scroll)
 
     def update_status_bar(self):
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -685,7 +425,22 @@ class DefectDetectionApp(QMainWindow):
             self.set_processing_state(True)
             
             camera = PylonCamera() 
-            row_id = camera.capture_image()
+            
+            # ========================
+            # CHUYỂN ĐỔI TEST MODE
+            # ========================
+            
+            # Uncomment một trong những dòng dưới để test:
+            
+            # 1. Test với file cụ thể:
+            row_id = camera.capture_image_from_file()
+            
+            # 2. Test với file có tên cụ thể trong storage:
+            # row_id = camera.capture_test_image("defect_sample.jpg")
+            
+            # 3. Dùng camera thật (dòng gốc):
+            # row_id = camera.capture_image()
+            
             if row_id is None:
                 raise Exception("Failed to capture image.")    
                 
@@ -714,7 +469,12 @@ class DefectDetectionApp(QMainWindow):
             # Save to database
             update_detection_in_db(self.image_thread.row_id, img_with_boxes, result_obj)
 
-            # Mark history as needing refresh
+            # TỰ ĐỘNG REFRESH HISTORY TAB NGAY SAU KHI CHỤP XONG
+            if hasattr(self, 'history_tab') and self.history_tab:
+                self.history_tab.refresh_data()
+                print("🔄 History tab auto-refreshed after image processing")
+            
+            # Mark history as needing refresh (backup)
             self.history_loaded = False
             self.history_needs_refresh = True
             
@@ -764,11 +524,12 @@ class DefectDetectionApp(QMainWindow):
                     defect_name = classes[int(cls_id)]
                     confidence = confidences[i] * 100
                     
-                    item_text = f"🔴 Defect #{idx+1}: {defect_name}\n   Confidence: {confidence:.1f}%"
+                    # CHỈ HIỂN THỊ TÊN DEFECT, KHÔNG CÓ CONFIDENCE
+                    item_text = f"🔴 Defect #{idx+1}: {defect_name}"
                     item = QListWidgetItem(item_text)
                     item.setFont(QFont("Segoe UI", 13))
                     
-                    # Enhanced color coding
+                    # Enhanced color coding based on confidence (internally - không hiển thị)
                     if confidence > 90:
                         item.setBackground(QColor(255, 182, 193))  # Light pink
                     elif confidence > 75:
@@ -780,18 +541,7 @@ class DefectDetectionApp(QMainWindow):
                 
                 # Enhanced fail indicator
                 self.result_indicator.setText(f"❌ QUALITY FAILED\n{defect_count} defects detected")
-                self.result_indicator.setStyleSheet("""
-                    QLabel {
-                        background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                            stop:0 #ffebee, stop:1 #ffcdd2);
-                        color: #c62828;
-                        border: 3px solid #ef5350;
-                        border-radius: 12px;
-                        padding: 16px;
-                        font-size: 18px;
-                        font-weight: bold;
-                    }
-                """)
+                self.result_indicator.setStyleSheet(AppStyles.get_result_indicator_styles()['failed'])
                 
             else:
                 # Update status cards for pass
@@ -807,18 +557,7 @@ class DefectDetectionApp(QMainWindow):
                 
                 # Enhanced pass indicator
                 self.result_indicator.setText("✅ QUALITY PASSED\nNo defects detected")
-                self.result_indicator.setStyleSheet("""
-                    QLabel {
-                        background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                            stop:0 #e8f5e9, stop:1 #c8e6c9);
-                        color: #2e7d32;
-                        border: 3px solid #66bb6a;
-                        border-radius: 12px;
-                        padding: 16px;
-                        font-size: 18px;
-                        font-weight: bold;
-                    }
-                """)
+                self.result_indicator.setStyleSheet(AppStyles.get_result_indicator_styles()['passed'])
             
             self.set_processing_state(False)
             self.status_message.setText("🟢 Analysis complete")
@@ -833,37 +572,17 @@ class DefectDetectionApp(QMainWindow):
         self.lblImage.setText("🎯 Captured image will appear here\n\nClick 'Capture Image' to start quality inspection")
         self.lstResult.clear()
         self.image_info.setText("📊 No image loaded")
-        self.last_captured_path = None
-        self.current_raw_image = None
         
-        # Reset status cards
+        # Reset mini status cards
         self.total_defects_card.update_value("0", "#6c757d")
-        self.defect_types_card.update_value("0", "#6c757d")
+        self.defect_types_card.update_value("0", "#6c757d") 
         self.status_card.update_value("Ready", "#6c757d")
         
         # Reset indicator with proper sizing
         self.result_indicator.setText("⏳ Waiting for analysis...")
         self.result_indicator.setWordWrap(True)
         self.result_indicator.setMaximumHeight(120)
-        self.result_indicator.setStyleSheet("""
-            QLabel {
-                font-size: 14px;
-                font-weight: bold;
-                border-radius: 12px;
-                padding: 16px;
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #f8f9fa, stop:1 #e9ecef);
-                border: 2px solid #dee2e6;
-                color: #6c757d;
-                max-height: 120px;
-            }
-        """)
-        
-        # Clear barcode status and reset to default
-        self.status_message.setText("🧹 Results cleared | 🔍 Scanner active")
-        
-        # Reset status message style to default if it was changed by barcode notification
-        self.status_message.setStyleSheet("")
+        self.result_indicator.setStyleSheet(AppStyles.get_result_indicator_styles()['waiting'])
         
         self.status_message.setText("🧹 Results cleared")
 
@@ -883,19 +602,7 @@ class DefectDetectionApp(QMainWindow):
             self.result_indicator.setText("⚙️ ANALYZING...\nPlease wait")
             self.result_indicator.setWordWrap(True)
             self.result_indicator.setMaximumHeight(120)
-            self.result_indicator.setStyleSheet("""
-                QLabel {
-                    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                        stop:0 #fff3cd, stop:1 #ffeaa7);
-                    color: #856404;
-                    border: 3px solid #ffc107;
-                    border-radius: 12px;
-                    padding: 16px;
-                    font-size: 14px;
-                    font-weight: bold;
-                    max-height: 120px;
-                }
-            """)
+            self.result_indicator.setStyleSheet(AppStyles.get_result_indicator_styles()['processing'])
         else:
             self.setCursor(Qt.ArrowCursor)
 
@@ -906,26 +613,11 @@ class DefectDetectionApp(QMainWindow):
         # Update status card
         self.status_card.update_value("Error", "#e74c3c")
         
-        # Truncate long error messages for display
-        display_message = message if len(message) <= 50 else message[:47] + "..."
-        
         # Enhanced error indicator with word wrap and size constraints
-        self.result_indicator.setText(f"⚠️ ERROR\n{display_message}")
+        self.result_indicator.setText(f"⚠️ ERROR\n{message}")
         self.result_indicator.setWordWrap(True)
         self.result_indicator.setMaximumHeight(120)
-        self.result_indicator.setStyleSheet("""
-            QLabel {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #fff3e0, stop:1 #ffe0b2);
-                color: #e65100;
-                border: 3px solid #ff9800;
-                border-radius: 12px;
-                padding: 16px;
-                font-size: 14px;
-                font-weight: bold;
-                max-height: 120px;
-            }
-        """)
+        self.result_indicator.setStyleSheet(AppStyles.get_result_indicator_styles()['error'])
 
     def show_history_tab(self):
         """Switch to history tab and refresh data"""
@@ -935,28 +627,39 @@ class DefectDetectionApp(QMainWindow):
     def resizeEvent(self, event):
         """Handle window resize"""
         super().resizeEvent(event)
-        # If we have an image loaded, rescale it
-        if self.last_captured_path and not self.lblImage.text():
+    
+        # Kiểm tra xem lblImage đã được khởi tạo chưa
+        if hasattr(self, 'lblImage'):
+            # Resize pixmap if available
             pixmap = self.lblImage.pixmap()
-            if pixmap:
-                self.lblImage.setPixmap(pixmap.scaled(
-                    self.lblImage.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
+            if pixmap and not pixmap.isNull():
+                scaled_pixmap = pixmap.scaled(
+                    self.lblImage.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                self.lblImage.setPixmap(scaled_pixmap)
 
     def closeEvent(self, event):
-        """Handle application close event"""
         try:
-            # Stop barcode scanner thread
             if hasattr(self, 'barcode_thread') and self.barcode_thread.isRunning():
-                self.barcode_thread.terminate()
-                self.barcode_thread.wait(3000)  # Wait up to 3 seconds
-                print("🔍 Barcode scanner stopped")
-            
-            # Stop other threads if running
-            if hasattr(self, 'image_thread') and self.image_thread.isRunning():
-                self.image_thread.terminate()
-                self.image_thread.wait(1000)
+                print("🔍 Stopping barcode scanner...")
                 
+                # Request thread to stop gracefully
+                self.barcode_thread.requestInterruption()
+                
+                # Wait for thread to finish naturally
+                if not self.barcode_thread.wait(1000):  
+                    print("Thread didn't stop gracefully, terminating...")
+                    self.barcode_thread.terminate()
+                    if not self.barcode_thread.wait(500):  # Wait 1 more second
+                        print("Force killing thread")        
+                print("Barcode scanner stopped")
+            
+            # Stop other threads
+            if hasattr(self, 'image_thread') and self.image_thread.isRunning():
+                self.image_thread.requestInterruption()
+                if not self.image_thread.wait(1000):
+                    self.image_thread.terminate()
+                    
         except Exception as e:
             print(f"Error during cleanup: {e}")
-        
-        event.accept()
+        finally:
+            event.accept()

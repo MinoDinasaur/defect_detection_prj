@@ -3,8 +3,6 @@ from datetime import datetime
 from sqlite3 import Error
 import os
 import cv2
-import sys
-from datetime import datetime
 
 DB_PATH = 'sqlite_database/db/detections.db'
 
@@ -42,33 +40,33 @@ def reset_scanned_barcode():
 
 #Helper function
 def execute_query(query, params=None, fetch=False):
-    """
-    Execute a query on the database.
-
-    Args:
-        query (str): SQL query to execute.
-        params (tuple): Parameters for the query.
-        fetch (bool): Whether to fetch results.
-
-    Returns:
-        list: Query results if fetch is True, otherwise None.
-    """
+    conn = None
+    cursor = None
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
+        
         if params:
             cursor.execute(query, params)
         else:
             cursor.execute(query)
+            
         if fetch:
             results = cursor.fetchall()
-            conn.close()
             return results
-        conn.commit()
-        conn.close()
-    except Exception as e:
-        print(f"Database query error: {e}")
-    return None
+        else:
+            conn.commit()
+            return True
+    except sqlite3.Error as e:
+        print(f"Database error: {e}")
+        if conn:
+            conn.rollback()  # Rollback transaction
+        return None
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 def save_detection_to_db(img_raw, img_detect, defect, barcode=None):
     """
@@ -106,85 +104,29 @@ def save_detection_to_db(img_raw, img_detect, defect, barcode=None):
         print(f"Error saving detection to database: {e}")
         return None
 
-def save_to_db(img_raw_path, img_with_boxes, result_obj):
-    """
-    Save the raw image, detected image, and defect information to the database.
-
-    Args:
-        img_raw_path (str): Path to the raw image file.
-        img_with_boxes (numpy.ndarray): Image with bounding boxes drawn.
-        result_obj (object): Detection result object containing defect information.
-    """
-    global scanned_barcode
-    try:
-        # Save the detected image to a file
-        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        detected_path = f"/home/ducanh/Desktop/DATN/DB/images_origin_detect/detected/{timestamp}_detected.png"
-        cv2.imwrite(detected_path, img_with_boxes)
-
-        # Read raw and detected images as binary data
-        with open(img_raw_path, "rb") as raw_file:
-            img_raw = raw_file.read()
-        with open(detected_path, "rb") as detected_file:
-            img_detect = detected_file.read()
-
-        # Extract defect information
-        classes = result_obj.names
-        boxes = result_obj.boxes
-        labels = boxes.cls.cpu().tolist() if boxes is not None else []
-        confidences = boxes.conf.cpu().tolist() if boxes is not None else []
-
-        # Filter out OK class
-        defect_indices = [(i, cls_id) for i, cls_id in enumerate(labels) if classes[int(cls_id)].lower() != "ok"]
-
-        # Save each defect to the database
-        for i, cls_id in defect_indices:
-            defect_name = classes[int(cls_id)]
-            confidence = confidences[i] * 100
-            defect_info = f"{defect_name} ({confidence:.2f}%)"
-
-            # Use the scanned barcode
-            save_detection_to_db(img_raw, img_detect, defect_info, barcode=scanned_barcode)
-
-        print("Data saved to database successfully.")
-        
-        # Reset the barcode after saving to database
-        reset_scanned_barcode()
-
-    except Exception as e:
-        print(f"Error saving to database: {e}")
-
 def update_detection_in_db(row_id, img_with_boxes, result_obj):
     """
-    Update detection data in the SQLite database.
-
-    Args:
-        row_id (int): The row ID of the record to update.
-        img_with_boxes (numpy.ndarray): Image with bounding boxes drawn.
-        result_obj (object): Detection result object containing defect information.
+    Update detection data in the SQLite database (without saving to disk).
     """
     try:
-        # Save the detected image to a file
-        detected_path = f"/home/ducanh/Desktop/defect_detection_prj/storage/detected_images/{row_id}_detected.png"
-        cv2.imwrite(detected_path, img_with_boxes)
-
-        # Read detected image as binary data
-        with open(detected_path, "rb") as detected_file:
-            img_detect = detected_file.read()
+        # Encode image as binary data directly
+        _, img_encoded = cv2.imencode('.png', img_with_boxes)
+        img_detect = img_encoded.tobytes()
 
         # Extract defect information
         classes = result_obj.names
         boxes = result_obj.boxes
         labels = boxes.cls.cpu().tolist() if boxes is not None else []
-        confidences = boxes.conf.cpu().tolist() if boxes is not None else []
 
         # Filter out OK class
-        defect_indices = [(i, cls_id) for i, cls_id in enumerate(labels) if classes[int(cls_id)].lower() != "ok"]
-        defects = [
-            f"{classes[int(cls_id)]} ({confidences[i] * 100:.2f}%)"
-            for i, cls_id in defect_indices
-        ]
-        defect_info = ", ".join(defects) if defects else "No defects"
+        defect_indices = [cls_id for cls_id in labels if classes[int(cls_id)].lower() != "ok"]
+        
+        if defect_indices:
+            defect_names = [classes[int(cls_id)] for cls_id in defect_indices]
+            unique_defects = list(set(defect_names))
+            defect_info = ", ".join(sorted(unique_defects))
+        else:
+            defect_info = "No defects"
 
         # Update the database record
         query = """
@@ -262,6 +204,53 @@ def get_detections(date_from, date_to, defect_filter=None):
     query += " ORDER BY time DESC"
     return execute_query(query, params, fetch=True)
 
+def get_detections_paginated(date_from, date_to, defect_filter=None, page=1, page_size=10):
+    """
+    Fetch detection records with pagination.
+    
+    Args:
+        date_from (str): Start date in 'YYYY-MM-DD' format.
+        date_to (str): End date in 'YYYY-MM-DD' format.
+        defect_filter (str): Filter for defect type (optional).
+        page (int): Page number (1-based).
+        page_size (int): Number of records per page.
+    
+    Returns:
+        tuple: (records, total_count)
+    """
+    # Base query
+    base_query = "SELECT rowid, time, img_raw, img_detect, defect, barcode FROM detections WHERE time BETWEEN ? AND ?"
+    count_query = "SELECT COUNT(*) FROM detections WHERE time BETWEEN ? AND ?"
+    
+    params = [date_from, date_to]
+    
+    # Add defect filter if specified
+    if defect_filter and defect_filter != "All":
+        filter_condition = ""
+        if defect_filter == "No defects":
+            filter_condition = " AND defect = ?"
+            params.append("No defects")
+        else:
+            filter_condition = " AND defect LIKE ?"
+            params.append(f"%{defect_filter}%")
+        
+        base_query += filter_condition
+        count_query += filter_condition
+    
+    # Get total count
+    total_result = execute_query(count_query, params, fetch=True)
+    total_count = total_result[0][0] if total_result else 0
+    
+    # Add pagination to main query
+    base_query += " ORDER BY time DESC LIMIT ? OFFSET ?"
+    offset = (page - 1) * page_size
+    params.extend([page_size, offset])
+    
+    # Get paginated records
+    records = execute_query(base_query, params, fetch=True) or []
+    
+    return records, total_count
+
 def get_image_data(row_id, image_type):
     """
     Fetch image data (raw or detection) for a specific row ID.
@@ -290,3 +279,37 @@ def delete_detection_from_db(row_id):
         print(f"Detection #{row_id} deleted successfully.")
     except Exception as e:
         print(f"Error deleting detection #{row_id}: {str(e)}")
+
+def get_detection_for_export(row_id):
+    """
+    Get detection data for export by row ID.
+    
+    Args:
+        row_id (int): The row ID of the detection record.
+    
+    Returns:
+        tuple: (time_str, img_raw, img_detect, defect, barcode) or None if not found
+    """
+    query = "SELECT time, img_raw, img_detect, defect, barcode FROM detections WHERE rowid = ?"
+    result = execute_query(query, (row_id,), fetch=True)
+    
+    if result and len(result) > 0:
+        return result[0]  # Return the first (and should be only) result
+    return None
+
+def get_detection_summary(row_id):
+    """
+    Get detection summary data (without large binary data) for display.
+    
+    Args:
+        row_id (int): The row ID of the detection record.
+    
+    Returns:
+        tuple: (time_str, defect, barcode) or None if not found
+    """
+    query = "SELECT time, defect, barcode FROM detections WHERE rowid = ?"
+    result = execute_query(query, (row_id,), fetch=True)
+    
+    if result and len(result) > 0:
+        return result[0]
+    return None
