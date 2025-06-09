@@ -5,7 +5,7 @@ from sqlite_database.src.db_operations import get_image_data
 import numpy as np
 
 # Load YOLO model
-model = YOLO("./models/v6/bestv6.pt")
+model = YOLO("./models/v8/bestv8.onnx")
 
 def detect_image(row_id):
     """
