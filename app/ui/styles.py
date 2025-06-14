@@ -1,5 +1,27 @@
 class AppStyles:
     @staticmethod
+    def get_compact_header_frame_style():
+        """Compact header frame style for main window"""
+        return """
+            QFrame {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #667eea, stop:1 #764ba2);
+                border-radius: 8px;
+                padding: 10px 16px;
+            }
+        """
+    @staticmethod
+    def get_compact_header_title_style():
+        """Compact header title style for main window"""
+        return """
+            QLabel {
+                color: white;
+                font-size: 18px;
+                font-weight: bold;
+                margin: 0;
+            }
+        """
+    @staticmethod
     def get_main_window_style():
         return """
             QMainWindow {
@@ -79,11 +101,12 @@ class AppStyles:
                     stop:0 #4a86e8, stop:1 #3a76d8);
                 color: white;
                 border: none;
-                border-radius: 8px;
-                padding: 12px 20px;
+                border-radius: 6px;                /* Reduced from 8px */
+                padding: 6px 12px;                 /* Reduced from 12px 20px */
                 font-weight: bold;
-                font-size: 14px;
-                min-height: 20px;
+                font-size: 12px;                   /* Reduced from 14px */
+                min-height: 12px;                  /* Reduced from 20px */
+                max-height: 35px;                  /* Add max height limit */
             }
             QPushButton:hover {
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
@@ -109,11 +132,12 @@ class AppStyles:
                     stop:0 #95a5a6, stop:1 #7f8c8d);
                 color: white;
                 border: none;
-                border-radius: 8px;
-                padding: 12px 20px;
+                border-radius: 6px;                /* Reduced from 8px */
+                padding: 6px 12px;                 /* Reduced from 12px 20px */
                 font-weight: bold;
-                font-size: 14px;
-                min-height: 20px;
+                font-size: 12px;                   /* Reduced from 14px */
+                min-height: 12px;                  /* Reduced from 20px */
+                max-height: 35px;                  /* Add max height limit */
             }
             QPushButton:hover {
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
@@ -348,8 +372,9 @@ class AppStyles:
             QFrame {
                 background: white;
                 border: 1px solid #e0e6ed;
-                border-radius: 16px;
-                padding: 20px;
+                border-radius: 8px;           /* Reduced from 16px */
+                padding: 8px;                 /* Reduced from 20px */
+                max-height: 60px;             /* Add height limit */
             }
         """
     

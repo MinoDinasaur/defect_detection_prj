@@ -263,27 +263,24 @@ class DefectDetectionApp(QMainWindow):
     def setup_live_detection_tab(self):
         """Setup the enhanced UI for live detection tab"""
         main_layout = QVBoxLayout(self.live_detection_tab)
-        main_layout.setContentsMargins(24, 24, 24, 24)
-        main_layout.setSpacing(20)
+        main_layout.setContentsMargins(12, 8, 12, 8)
+        main_layout.setSpacing(10)
         
         # === Header Section ===
         header_frame = QFrame()
-        header_frame.setStyleSheet(AppStyles.get_header_frame_style())
-        header_layout = QHBoxLayout(header_frame)
+        header_frame.setStyleSheet(AppStyles.get_compact_header_frame_style())
         
-        # Title and subtitle
-        title_layout = QVBoxLayout()
-        title_label = QLabel("Quality Control Station")
+        header_layout = QHBoxLayout(header_frame)
+        header_layout.setContentsMargins(12, 8, 12, 8)  # Minimal padding
+        # header_layout.setSpacing(6)
+        
+        # Single line title only
+        title_label = QLabel("Defect Detection System")
         title_label.setStyleSheet(AppStyles.get_header_title_style())
         
-        subtitle_label = QLabel("Real-time defect detection and analysis")
-        subtitle_label.setStyleSheet(AppStyles.get_header_subtitle_style())
-        
-        title_layout.addWidget(title_label)
-        title_layout.addWidget(subtitle_label)
-        header_layout.addLayout(title_layout)
+        header_layout.addWidget(title_label)
         header_layout.addStretch()
-        
+
         main_layout.addWidget(header_frame)
         
         # === Stats Cards Section ===
@@ -372,8 +369,13 @@ class DefectDetectionApp(QMainWindow):
         main_layout.addWidget(splitter)
         
         # === Enhanced Controls Section ===
-        controls_frame = QFrame()
+        controls_frame = QFrame()  # This is your "GroupBox" for the buttons
         controls_frame.setStyleSheet(AppStyles.get_controls_frame_style())
+        
+        # MAKE THE CONTROLS FRAME SHORTER - ADD THESE LINES:
+        controls_frame.setMaximumHeight(60)    # Limit maximum height
+        controls_frame.setMinimumHeight(50)    # Set minimum height
+        controls_frame.setFixedHeight(55)      # Or use fixed height for exact control
         
         # Add shadow to controls
         shadow = QGraphicsDropShadowEffect()
@@ -383,15 +385,20 @@ class DefectDetectionApp(QMainWindow):
         shadow.setColor(QColor(0, 0, 0, 20))
         controls_frame.setGraphicsEffect(shadow)
         
+        # MAKE THE LAYOUT MORE COMPACT:
         controls_layout = QHBoxLayout(controls_frame)
+        controls_layout.setContentsMargins(12, 8, 12, 8)  # Reduced margins (left, top, right, bottom)
+        controls_layout.setSpacing(8)  # Reduced spacing between buttons
         
-        # Enhanced buttons
+        # Enhanced buttons - MAKE THEM SMALLER TOO:
         self.btnCapture = AnimatedButton("📸 Capture & Analyze")
-        self.btnCapture.setMinimumSize(200, 50)
+        self.btnCapture.setMinimumSize(150, 35)  # Reduced height from 50 to 35
+        self.btnCapture.setMaximumHeight(40)     # Limit button height
         self.btnCapture.clicked.connect(self.on_capture)
         
         self.btnClear = AnimatedButton("🧹 Clear Results")
-        self.btnClear.setMinimumSize(150, 50)
+        self.btnClear.setMinimumSize(120, 35)    # Reduced height from 50 to 35
+        self.btnClear.setMaximumHeight(40)       # Limit button height
         self.btnClear.setStyleSheet(AppStyles.get_clear_button_style())
         self.btnClear.clicked.connect(self.clear_results)
         

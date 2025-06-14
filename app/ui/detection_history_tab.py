@@ -150,7 +150,7 @@ class DetectionHistoryTab(QWidget):
         header_layout.setContentsMargins(12, 8, 12, 8)  # Giảm padding
         
         # Compact title - chỉ 1 dòng
-        title_label = QLabel("📊 Detection History")  # Rút gọn title
+        title_label = QLabel("Detection History")  
         title_label.setStyleSheet(HistoryTabStyles.get_compact_header_title_style())
         
         header_layout.addWidget(title_label)
