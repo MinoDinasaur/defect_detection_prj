@@ -1409,3 +1409,173 @@ class HistoryTabStyles:
                 background: #adb5bd;
             }}
         """
+    
+    @staticmethod
+    def get_image_view_dialog_style():
+        """Style for ImageViewDialog"""
+        return """
+            QDialog {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                    stop:0 #f8f9fa, stop:1 #e9ecef);
+            }
+        """
+
+    @staticmethod
+    def get_image_view_title_frame_style():
+        """Style for ImageViewDialog title frame"""
+        return """
+            QFrame {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #4a86e8, stop:1 #3a76d8);
+                border-radius: 12px;
+                padding: 20px;
+                min-height: 70px;
+            }
+        """
+
+    @staticmethod
+    def get_image_view_title_label_style():
+        """Style for ImageViewDialog title label"""
+        return """
+            QLabel {
+                color: white;
+                font-size: 28px;
+                font-weight: bold;
+                margin: 0;
+                padding: 10px 0;
+            }
+        """
+
+    @staticmethod
+    def get_image_view_image_label_style():
+        """Style for ImageViewDialog image label"""
+        return """
+            QLabel {
+                background: white;
+                border: 3px solid #e0e6ed;
+                border-radius: 15px;
+                padding: 20px;
+                min-height: 700px;
+                min-width: 1000px;
+            }
+        """
+
+    @staticmethod
+    def get_image_view_invalid_image_style():
+        """Style for invalid image in ImageViewDialog"""
+        return """
+            QLabel {
+                font-size: 24px;
+                color: #e74c3c;
+                background: #f8f9fa;
+                border: 2px dashed #dee2e6;
+                border-radius: 10px;
+                padding: 50px;
+            }
+        """
+
+    @staticmethod
+    def get_image_view_save_button_style():
+        """Style for save button in ImageViewDialog"""
+        return """
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #28a745, stop:1 #218838);
+                color: white;
+                border: none;
+                border-radius: 10px;
+                padding: 18px 30px;
+                font-weight: 600;
+                font-size: 22px;
+                min-width: 180px;
+                min-height: 60px;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #34ce57, stop:1 #28a745);
+                transform: translateY(-3px);
+                box-shadow: 0 6px 15px rgba(40, 167, 69, 0.3);
+            }
+            QPushButton:pressed {
+                transform: translateY(1px);
+            }
+        """
+
+    @staticmethod
+    def get_image_view_close_button_style():
+        """Style for close button in ImageViewDialog"""
+        return """
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #6c757d, stop:1 #5a6268);
+                color: white;
+                border: none;
+                border-radius: 10px;
+                padding: 18px 30px;
+                font-weight: 600;
+                font-size: 22px;
+                min-width: 150px;
+                min-height: 60px;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #7c868d, stop:1 #6c757d);
+                transform: translateY(-3px);
+                box-shadow: 0 6px 15px rgba(108, 117, 125, 0.3);
+            }
+            QPushButton:pressed {
+                transform: translateY(1px);
+            }
+        """
+
+    @staticmethod
+    def get_delete_dialog_delete_button_style():
+        """Style for delete button in delete confirmation dialog"""
+        return """
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #e74c3c, stop:1 #c0392b);
+                color: white;
+                border: none;
+                border-radius: 8px;
+                padding: 12px 20px;
+                font-size: 18px;
+                font-weight: bold;
+                min-width: 120px;
+                min-height: 45px;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #c0392b, stop:1 #a93226);
+                transform: scale(1.05);
+            }
+            QPushButton:pressed {
+                transform: scale(0.95);
+            }
+        """
+
+    @staticmethod
+    def get_delete_dialog_cancel_button_style():
+        """Style for cancel button in delete confirmation dialog"""
+        return """
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #95a5a6, stop:1 #7f8c8d);
+                color: white;
+                border: none;
+                border-radius: 8px;
+                padding: 12px 20px;
+                font-size: 18px;
+                font-weight: bold;
+                min-width: 120px;
+                min-height: 45px;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #a5b5b6, stop:1 #8f9c8d);
+                transform: scale(1.05);
+            }
+            QPushButton:pressed {
+                transform: scale(0.95);
+            }
+        """

@@ -21,32 +21,36 @@ class ImageViewDialog(QDialog):
     """Enhanced dialog for viewing images in larger size"""
     def __init__(self, image_data, title, parent=None):
         super().__init__(parent)
-        self.setWindowTitle(f"{title}")
-        self.setMinimumSize(800, 600)
-        self.setStyleSheet(HistoryTabStyles.get_dialog_style())
+        self.setWindowTitle(f"🖼️ {title}")
         
-        # Layout
+        # TĂNG KÍCH THƯỚC DIALOG LỚN HƠN
+        self.setMinimumSize(1400, 900)
+        self.resize(1600, 1000)
+        self.setStyleSheet(HistoryTabStyles.get_image_view_dialog_style())
+        
+        # Layout với margins lớn hơn
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(16, 16, 16, 16)
-        layout.setSpacing(12)
+        layout.setContentsMargins(24, 24, 24, 24)
+        layout.setSpacing(20)
         
-        # Title section
+        # Title section với kích thước lớn hơn
         title_frame = QFrame()
-        title_frame.setStyleSheet(HistoryTabStyles.get_dialog_title_frame_style())
+        title_frame.setStyleSheet(HistoryTabStyles.get_image_view_title_frame_style())
         title_layout = QHBoxLayout(title_frame)
+        title_layout.setContentsMargins(20, 15, 20, 15)
         
-        title_label = QLabel(f"{title}")
-        title_label.setStyleSheet(HistoryTabStyles.get_dialog_title_style())
+        title_label = QLabel(f"🖼️ {title}")
+        title_label.setStyleSheet(HistoryTabStyles.get_image_view_title_label_style())
         title_layout.addWidget(title_label)
         title_layout.addStretch()
         
         layout.addWidget(title_frame)
         
-        # Image label
+        # Image label với kích thước lớn hơn nhiều
         self.image_label = QLabel()
         self.image_label.setAlignment(Qt.AlignCenter)
         self.image_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.image_label.setStyleSheet(HistoryTabStyles.get_dialog_image_label_style())
+        self.image_label.setStyleSheet(HistoryTabStyles.get_image_view_image_label_style())
         
         # Convert image data to QPixmap
         if isinstance(image_data, bytes):
@@ -60,41 +64,50 @@ class ImageViewDialog(QDialog):
         elif isinstance(image_data, QPixmap):
             pixmap = image_data
         else:
-            self.image_label.setText("Invalid image data")
+            self.image_label.setText("❌ Invalid image data")
+            self.image_label.setStyleSheet(HistoryTabStyles.get_image_view_invalid_image_style())
             layout.addWidget(self.image_label)
             return
             
-        # Scale image maintaining aspect ratio
+        # Scale image maintaining aspect ratio - KÍCH THƯỚC LỚN HƠN NHIỀU
         self.image_label.setPixmap(pixmap.scaled(
-            700, 500, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+            1200, 800, Qt.KeepAspectRatio, Qt.SmoothTransformation))
         
         layout.addWidget(self.image_label)
         
-        # Button layout
+        # Button layout với buttons lớn hơn
         button_layout = QHBoxLayout()
+        button_layout.setSpacing(20)
         button_layout.addStretch()
         
-        save_button = QPushButton("Save Image")
+        # SAVE BUTTON LỚN HƠN
+        save_button = QPushButton("💾 Save Image")
         save_button.clicked.connect(lambda: self.save_image(pixmap))
-        save_button.setStyleSheet(HistoryTabStyles.get_dialog_save_button_style())
+        save_button.setStyleSheet(HistoryTabStyles.get_image_view_save_button_style())
         
-        close_button = QPushButton("✖️ Close")
+        # CLOSE BUTTON LỚN HƠN
+        close_button = QPushButton("❌ Close")
         close_button.clicked.connect(self.accept)
-        close_button.setStyleSheet(HistoryTabStyles.get_dialog_close_button_style())
+        close_button.setStyleSheet(HistoryTabStyles.get_image_view_close_button_style())
         
         button_layout.addWidget(save_button)
         button_layout.addWidget(close_button)
         layout.addLayout(button_layout)
         
+        # CENTER DIALOG ON PARENT
+        if parent:
+            parent_geometry = parent.geometry()
+            x = parent_geometry.x() + (parent_geometry.width() - self.width()) // 2
+            y = parent_geometry.y() + (parent_geometry.height() - self.height()) // 2
+            self.move(x, y)
+
     def save_image(self, pixmap):
         """Save image to file"""
-        file_name, _ = QFileDialog.getSaveFileName(
-            self, "Save Image", "", "PNG Files (*.png);;JPEG Files (*.jpg)"
+        file_path, _ = QFileDialog.getSaveFileName(
+            self, "Save Image", "", "PNG Files (*.png);;JPEG Files (*.jpg);;All Files (*)"
         )
-        
-        if file_name:
-            pixmap.save(file_name)
-            QMessageBox.information(self, "Success", f"Image saved to {file_name}")
+        if file_path:
+            pixmap.save(file_path)
 
 class ClickableImageLabel(QLabel):
     """Custom QLabel that emits signals on double-click"""
@@ -589,23 +602,52 @@ class DetectionHistoryTab(QWidget):
             serial_number = self.history_table.item(row, 0).text()
         else:
             serial_number = "Unknown"
-            
-        reply = QMessageBox.question(
-            self, "Confirm Deletion",
-            f"Are you sure you want to delete detection #{serial_number}?\n\n(Database ID: {database_id})",
-            QMessageBox.Yes | QMessageBox.No, QMessageBox.No
-        )
         
-        if reply == QMessageBox.Yes:
+        # TẠO CUSTOM DIALOG VỚI KÍCH THƯỚC LỚN HƠN
+        msg_box = QMessageBox(self)
+        msg_box.setWindowTitle("⚠ Confirm Deletion")
+        msg_box.setIcon(QMessageBox.Question)
+        
+        # NỘI DUNG VỚI FONT LỚN HƠN
+        msg_box.setText(f"""
+        <h2 style='color: #e74c3c; font-size: 24px;'>🗑️ Delete Detection Record</h2>
+        <p style='font-size: 20px; margin: 15px 0;'>
+        Are you sure you want to <b>permanently delete</b> this detection record?
+        </p>
+        <p style='font-size: 18px; background: #f8f9fa; padding: 10px; border-left: 4px solid #dc3545;'>
+        <b>Detection #{serial_number}</b><br>
+        Database ID: {database_id}
+        </p>
+        <p style='font-size: 16px; color: #666; margin-top: 15px;'>
+        ⚠️ This action cannot be undone!
+        </p>
+        """)
+        
+        # TĂNG KÍCH THƯỚC DIALOG
+        msg_box.setMinimumSize(500, 300)
+        msg_box.resize(600, 350)
+        
+        # CUSTOM BUTTONS VỚI FONT LỚN HƠN
+        delete_btn = msg_box.addButton("🗑️ Delete", QMessageBox.YesRole)
+        cancel_btn = msg_box.addButton("❌ Cancel", QMessageBox.NoRole)
+        
+        # STYLE CHO BUTTONS
+        delete_btn.setStyleSheet(HistoryTabStyles.get_delete_dialog_delete_button_style())
+        cancel_btn.setStyleSheet(HistoryTabStyles.get_delete_dialog_cancel_button_style())
+        
+        # HIỂN THỊ DIALOG VÀ XỬ LÝ KẾT QUẢ
+        msg_box.exec()
+        
+        if msg_box.clickedButton() == delete_btn:
             try:
-                delete_detection_from_db(database_id)  # Use real database ID
+                delete_detection_from_db(database_id)
                 
                 if hasattr(self.parent, 'status_message'):
-                    self.parent.status_message.setText(f"🗑️ Detection #{serial_number} deleted (DB ID: {database_id})")
+                    self.parent.status_message.setText(f"✗ Detection #{serial_number} deleted (DB ID: {database_id})")
                 
                 # Check if current page becomes empty after deletion
                 if self.history_table.rowCount() == 1 and self.current_page > 1:
-                    self.current_page -= 1  # Go to previous page if current page becomes empty
+                    self.current_page -= 1
                 
                 self.refresh_data()
             except Exception as e:
