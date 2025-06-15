@@ -166,7 +166,9 @@ class DefectDetectionApp(QMainWindow):
         # Window configuration
         self.setWindowTitle("Defect Detection System")
         self.setMinimumSize(1400, 900)
-        self.showMaximized()
+        
+        # THAY ĐỔI TỪ showMaximized() SANG showFullScreen()
+        self.showFullScreen()  # Chế độ toàn màn hình
         
         # Apply main window style
         self.setStyleSheet(AppStyles.get_main_window_style())
@@ -421,7 +423,7 @@ class DefectDetectionApp(QMainWindow):
         # Không cần đoạn code controls ở dưới main_layout nữa
 
     def setup_custom_title_bar(self, main_layout):
-        """Setup custom title bar với 3 nút cùng kích thước"""
+        """Setup custom title bar với 3 nút cùng kích thước - FULLSCREEN MODE"""
         title_bar = QFrame()
         title_bar.setStyleSheet("""
             QFrame {
@@ -435,14 +437,14 @@ class DefectDetectionApp(QMainWindow):
         
         title_layout = QHBoxLayout(title_bar)
         title_layout.setContentsMargins(15, 0, 5, 0)
-        title_layout.setSpacing(15)  # Giảm spacing để nút gần nhau hơn
+        title_layout.setSpacing(15)
         
         # App title
-        title_label = QLabel("Defect Detection System")
+        title_label = QLabel("Defect Detection System - FULLSCREEN MODE")
         title_label.setStyleSheet("""
             QLabel {
                 color: white;
-                font-size: 12px;
+                font-size: 14px;
                 font-weight: bold;
                 padding: 2px 2px;
             }
@@ -450,9 +452,9 @@ class DefectDetectionApp(QMainWindow):
         title_label.setAlignment(Qt.AlignVCenter)
         title_layout.addWidget(title_label)
         
-        # title_layout.addStretch()
+        title_layout.addStretch()
         
-        # 3 NÚT CÙNG KÍCH THƯỚC (50x40px)
+        # 3 NÚT với chức năng fullscreen
         
         # Minimize button - XÁM
         self.minimize_btn = QPushButton("−")
@@ -460,13 +462,13 @@ class DefectDetectionApp(QMainWindow):
         self.minimize_btn.setStyleSheet(AppStyles.get_title_button_style())
         title_layout.addWidget(self.minimize_btn)
         
-        # Maximize/Restore button - XÁM
-        self.maximize_btn = QPushButton("□")
-        self.maximize_btn.clicked.connect(self.toggle_maximize)
-        self.maximize_btn.setStyleSheet(AppStyles.get_title_button_style())
-        title_layout.addWidget(self.maximize_btn)
+        # Fullscreen toggle button - XÁM  
+        self.fullscreen_btn = QPushButton("□")
+        self.fullscreen_btn.clicked.connect(self.toggle_fullscreen)
+        self.fullscreen_btn.setStyleSheet(AppStyles.get_title_button_style())
+        title_layout.addWidget(self.fullscreen_btn)
         
-        # Close button - ĐỎ (sử dụng style từ AppStyles)
+        # Close button - ĐỎ
         self.close_btn = QPushButton("✕")
         self.close_btn.clicked.connect(self.close)
         self.close_btn.setStyleSheet(AppStyles.get_close_button_style())
@@ -474,29 +476,37 @@ class DefectDetectionApp(QMainWindow):
         
         main_layout.addWidget(title_bar)
         
-        # Make title bar draggable
+        # Make title bar draggable (chỉ hoạt động khi không fullscreen)
         self.title_bar = title_bar
         self.title_bar.mousePressEvent = self.title_bar_mouse_press
         self.title_bar.mouseMoveEvent = self.title_bar_mouse_move
         self.drag_position = None
 
-    def toggle_maximize(self):
-        """Toggle between maximized and normal window state"""
-        if self.isMaximized():
-            self.showNormal()
-            self.maximize_btn.setText("□")
+    def toggle_fullscreen(self):
+        """Toggle between fullscreen and windowed mode"""
+        if self.isFullScreen():
+            self.showNormal()  # Thay đổi từ showMaximized() sang showNormal()
+            self.fullscreen_btn.setText("□")
+            # Update title
+            title_label = self.title_bar.findChild(QLabel)
+            if title_label:
+                title_label.setText("Defect Detection System - WINDOWED MODE")
         else:
-            self.showMaximized()
-            self.maximize_btn.setText("❐")
+            self.showFullScreen()  # Chuyển về fullscreen
+            self.fullscreen_btn.setText("🗗")
+            # Update title  
+            title_label = self.title_bar.findChild(QLabel)
+            if title_label:
+                title_label.setText("Defect Detection System - FULLSCREEN MODE")
 
     def title_bar_mouse_press(self, event):
-        """Handle mouse press on title bar for dragging"""
-        if event.button() == Qt.LeftButton:
+        """Handle mouse press on title bar for dragging - chỉ khi không fullscreen"""
+        if not self.isFullScreen() and event.button() == Qt.LeftButton:
             self.drag_position = event.globalPosition().toPoint() - self.frameGeometry().topLeft()
 
     def title_bar_mouse_move(self, event):
-        """Handle mouse move on title bar for dragging"""
-        if event.buttons() == Qt.LeftButton and self.drag_position:
+        """Handle mouse move on title bar for dragging - chỉ khi không fullscreen"""
+        if not self.isFullScreen() and event.buttons() == Qt.LeftButton and self.drag_position:
             self.move(event.globalPosition().toPoint() - self.drag_position)
 
     def update_status_bar(self):
