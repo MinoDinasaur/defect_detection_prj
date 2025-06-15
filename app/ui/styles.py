@@ -1174,10 +1174,10 @@ class HistoryTabStyles:
     
     @staticmethod
     def get_compact_filter_group_style():
-        """Compact filter group style with single row layout"""
-        font_size = AppStyles.scale_font_size(20)  # Increased from 14
-        input_font_size = AppStyles.scale_font_size(20)  # Increased from 12
-        button_font_size = AppStyles.scale_font_size(30)  # Increased from 11
+        """Compact filter group style with single row layout - CHỈ CALENDAR POPUP LỚN HƠN"""
+        font_size = AppStyles.scale_font_size(20)  # Giữ nguyên
+        input_font_size = AppStyles.scale_font_size(20)  # Giữ nguyên
+        button_font_size = AppStyles.scale_font_size(30)  # Giữ nguyên
         
         return f"""
             QGroupBox {{
@@ -1212,6 +1212,138 @@ class HistoryTabStyles:
             QDateEdit:focus, QComboBox:focus {{
                 border: 2px solid #3498db;
             }}
+            QDateEdit::drop-down, QComboBox::drop-down {{
+                border: none;
+                width: 24px;
+                background: transparent;
+            }}
+            QDateEdit::down-arrow, QComboBox::down-arrow {{
+                image: none;
+                border-left: 4px solid transparent;
+                border-right: 4px solid transparent;
+                border-top: 4px solid #6c757d;
+                margin-right: 8px;
+            }}
+            
+            /* CHỈ STYLE CHO CALENDAR POPUP - TO HƠN NHIỀU */
+            QCalendarWidget {{
+                background-color: white;
+                border: 3px solid #4a86e8;
+                border-radius: 15px;
+                min-width: 500px;  /* Lớn hơn nhiều */
+                min-height: 400px; /* Lớn hơn nhiều */
+                font-size: 18px;   /* Font lớn hơn */
+            }}
+            
+            /* Header của calendar (tháng/năm) */
+            QCalendarWidget QWidget#qt_calendar_navigationbar {{
+                background-color: #4a86e8;
+                border-radius: 10px;
+                min-height: 50px;  /* Header cao hơn */
+            }}
+            
+            /* Navigation buttons (prev/next month) */
+            QCalendarWidget QToolButton {{
+                background-color: #3a76d8;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                min-width: 45px;   /* Buttons lớn hơn */
+                min-height: 45px;
+                font-size: 20px;   /* Font lớn hơn */
+                font-weight: bold;
+                margin: 3px;
+            }}
+            QCalendarWidget QToolButton:hover {{
+                background-color: #5a96f8;
+                transform: scale(1.1);
+            }}
+            QCalendarWidget QToolButton:pressed {{
+                background-color: #2a66c8;
+            }}
+            
+            /* Month/Year labels trong header */
+            QCalendarWidget QLabel {{
+                color: white;
+                font-size: 18px;
+                font-weight: bold;
+            }}
+            
+            /* Month/Year dropdown menu */
+            QCalendarWidget QMenu {{
+                background-color: white;
+                border: 2px solid #4a86e8;
+                border-radius: 8px;
+                font-size: 16px;
+                min-width: 150px;
+            }}
+            QCalendarWidget QMenu::item {{
+                padding: 8px 12px;
+                font-size: 16px;
+            }}
+            QCalendarWidget QMenu::item:selected {{
+                background-color: #4a86e8;
+                color: white;
+            }}
+            
+            /* Days of week header (Mon, Tue, Wed...) */
+            QCalendarWidget QAbstractItemView:enabled {{
+                font-size: 16px;
+                font-weight: 700;
+                color: #2c3e50;
+                background-color: #f8f9fa;
+                selection-background-color: #4a86e8;
+                selection-color: white;
+            }}
+            
+            /* Day cells grid */
+            QCalendarWidget QTableView {{
+                gridline-color: #dee2e6;
+                font-size: 16px;
+                font-weight: 600;
+                background-color: white;
+            }}
+            
+            /* Individual day cells */
+            QCalendarWidget QTableView::item {{
+                padding: 10px;  /* Cells lớn hơn */
+                margin: 1px;
+                border-radius: 6px;
+                min-height: 30px;  /* Cells cao hơn */
+                min-width: 30px;   /* Cells rộng hơn */
+            }}
+            
+            /* Selected date */
+            QCalendarWidget QTableView::item:selected {{
+                background-color: #4a86e8;
+                color: white;
+                border-radius: 8px;
+                font-weight: bold;
+                font-size: 18px;
+            }}
+            
+            /* Hover effect on dates */
+            QCalendarWidget QTableView::item:hover {{
+                background-color: #e8f4fd;
+                border-radius: 6px;
+                font-weight: bold;
+            }}
+            
+            /* Today's date highlight */
+            QCalendarWidget QTableView::item:focus {{
+                background-color: #ffc107;
+                color: #212529;
+                border: 2px solid #e67e22;
+                font-weight: bold;
+                border-radius: 6px;
+            }}
+            
+            /* Days from other months (grayed out) */
+            QCalendarWidget QTableView::item:!enabled {{
+                color: #adb5bd;
+                background-color: transparent;
+            }}
+            
             QPushButton {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 #3498db, stop:1 #2980b9);
@@ -1240,74 +1372,81 @@ class HistoryTabStyles:
     
     @staticmethod
     def get_compact_quick_filter_button_style():
-        """Compact quick filter button style"""
-        font_size = AppStyles.scale_font_size(20)  # Increased from 10
+        """Style for compact quick filter buttons"""
+        font_size = AppStyles.scale_font_size(30)  # Giữ nguyên kích thước font
         
         return f"""
             QPushButton {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 #95a5a6, stop:1 #7f8c8d);
-                min-width: 60px;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                padding: 8px 12px;
+                font-weight: 600;
+                min-width: 70px;
                 min-height: 32px;
                 max-height: 32px;
                 font-size: {font_size}px;
-                padding: 6px 10px;
             }}
             QPushButton:hover {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 #a5b5b6, stop:1 #8f9c8d);
                 transform: translateY(-1px);
             }}
+            QPushButton:pressed {{
+                transform: translateY(1px);
+            }}
         """
-    
+
     @staticmethod
     def get_compact_pagination_frame_style():
-        """Compact pagination frame style"""
+        """Style for compact pagination frame"""
         return """
             QFrame {
                 background: white;
                 border: 1px solid #e0e6ed;
                 border-radius: 8px;
-                padding: 10px;
-                margin: 2px;
-                max-height: 60px;
+                padding: 8px;
+                margin: 4px;
+                min-height: 16px;
             }
         """
-    
+
     @staticmethod
     def get_compact_pagination_records_info_style():
-        """Compact records info style"""
-        font_size = AppStyles.scale_font_size(20)  # Increased from 11
+        """Style for compact pagination records info"""
+        font_size = AppStyles.scale_font_size(20)
         
         return f"""
             QLabel {{
                 color: #6c757d;
                 font-size: {font_size}px;
                 font-weight: 500;
-                padding: 3px;
+                padding: 4px;
             }}
         """
-    
+
     @staticmethod
     def get_compact_pagination_page_info_style():
-        """Compact page info style"""
-        font_size = AppStyles.scale_font_size(20)  # Increased from 12
+        """Style for compact pagination page info"""
+        font_size = AppStyles.scale_font_size(20)
         
         return f"""
             QLabel {{
                 font-weight: 600;
                 color: #2c3e50;
-                padding: 0 14px;
+                padding: 0 12px;
                 font-size: {font_size}px;
-                min-width: 90px;
+                min-width: 100px;
                 text-align: center;
             }}
         """
-    
+
     @staticmethod
     def get_compact_pagination_button_style():
-        """Compact pagination button style with icons only"""
-        font_size = AppStyles.scale_font_size(20)  # Increased from 14
+        """Style for compact pagination buttons"""
+        font_size = AppStyles.scale_font_size(20)
         
         return f"""
             QPushButton {{
@@ -1315,18 +1454,23 @@ class HistoryTabStyles:
                     stop:0 #f8f9fa, stop:1 #e9ecef);
                 border: 1px solid #dee2e6;
                 border-radius: 6px;
-                padding: 6px 10px;
+                padding: 8px 12px;
                 font-size: {font_size}px;
                 font-weight: 500;
-                min-width: 36px;
-                min-height: 36px;
-                max-height: 36px;
+                min-width: 60px;
+                min-height: 32px;
+                max-height: 32px;
             }}
             QPushButton:hover {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 #e9ecef, stop:1 #dee2e6);
                 border: 1px solid #adb5bd;
                 transform: translateY(-1px);
+            }}
+            QPushButton:pressed {{
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #dee2e6, stop:1 #ced4da);
+                transform: translateY(1px);
             }}
             QPushButton:disabled {{
                 background: #f8f9fa;
@@ -1335,23 +1479,12 @@ class HistoryTabStyles:
                 transform: none;
             }}
         """
-    
-    @staticmethod
-    # BỎ CÁC STYLES KHÔNG DÙNG NẰNG NỮA CHO PAGE SIZE SELECTOR
-    # def get_compact_pagination_combo_style():
-    #     """Compact pagination combo style"""
-    #     ...
-    
-    # @staticmethod
-    # def get_compact_pagination_label_style():
-    #     """Compact pagination label style"""
-    #     ...
 
     @staticmethod
     def get_expanded_table_style():
-        """Table style with more vertical space"""
-        font_size = AppStyles.scale_font_size(20)  # Increased from 13
-        header_font_size = AppStyles.scale_font_size(27)  # Increased from 12
+        """Style for expanded table with more height"""
+        font_size = AppStyles.scale_font_size(20)
+        header_font_size = AppStyles.scale_font_size(27)
         
         return f"""
             QTableWidget {{
@@ -1362,7 +1495,6 @@ class HistoryTabStyles:
                 font-size: {font_size}px;
                 selection-background-color: #e8f4fd;
                 outline: none;
-                min-height: 520px;
             }}
             QHeaderView::section {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
@@ -1373,7 +1505,7 @@ class HistoryTabStyles:
                 font-weight: bold;
                 font-size: {header_font_size}px;
                 text-align: center;
-                min-height: 24px;
+                min-height: 20px;
             }}
             QHeaderView::section:hover {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
@@ -1409,7 +1541,7 @@ class HistoryTabStyles:
                 background: #adb5bd;
             }}
         """
-    
+
     @staticmethod
     def get_image_view_dialog_style():
         """Style for ImageViewDialog"""
@@ -1572,7 +1704,7 @@ class HistoryTabStyles:
             }
             QPushButton:hover {
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #a5b5b6, stop:1 #8f9c8d);
+                    stop:0 #a5b5b6, stop:1 #8f9c9d);
                 transform: scale(1.05);
             }
             QPushButton:pressed {
