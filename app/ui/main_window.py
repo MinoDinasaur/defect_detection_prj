@@ -325,18 +325,13 @@ class DefectDetectionApp(QMainWindow):
         
         # === MOVE STATS CARDS HERE (top of right side) ===
         stats_frame = QFrame()
-        stats_frame.setStyleSheet("""
-            QFrame {
-                background: rgba(255, 255, 255, 0.9);
-                border: 1px solid #e0e6ed;
-                border-radius: 12px;
-                padding: 8px;
-                margin: 4px 0;
-            }
-        """)
+        stats_frame.setStyleSheet(AppStyles.get_stats_frame_style())  # ← Use style from AppStyles
         stats_layout = QHBoxLayout(stats_frame)
         stats_layout.setContentsMargins(8, 8, 8, 8)
         stats_layout.setSpacing(8)
+        
+        # ADD STRETCH BEFORE CARDS TO CENTER THEM
+        stats_layout.addStretch()  # Left stretch
         
         # Create cards with adjusted size for right panel
         self.total_defects_card = MiniStatusCard("Defects", "0", "#dc3545")
@@ -347,8 +342,10 @@ class DefectDetectionApp(QMainWindow):
         stats_layout.addWidget(self.total_defects_card)
         stats_layout.addWidget(self.defect_types_card)
         stats_layout.addWidget(self.status_card)
-        stats_layout.addStretch()  # Push cards to left
         
+        # ADD STRETCH AFTER CARDS TO CENTER THEM
+        stats_layout.addStretch()  # Right stretch
+
         # Add stats frame to results container (top)
         results_layout.addWidget(stats_frame)
         

@@ -198,6 +198,18 @@ class AppStyles:
                 min-height: 24px;
             }
         """
+    @staticmethod
+    def get_stats_frame_style():
+        """Style for the status cards container frame"""
+        return """
+            QFrame {
+                background: rgba(255, 255, 255, 0.9);
+                border: 1px solid #e0e6ed;
+                border-radius: 12px;
+                padding: 8px;
+                margin: 4px 0;
+            }
+        """
     
     @staticmethod
     def get_progress_bar_style():
@@ -411,6 +423,9 @@ class AppStyles:
                 color: white;
                 padding: 10px 24px;
                 border-radius: 10px;
+                subcontrol-origin: margin;
+                subcontrol-position: top center;  /* CENTER THE TITLE */
+                margin-left: 0px;  /* Remove left margin for centering */
             }}
         """
     
