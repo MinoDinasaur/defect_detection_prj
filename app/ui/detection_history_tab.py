@@ -618,7 +618,7 @@ class DetectionHistoryTab(QWidget):
         <b>Detection #{serial_number}</b><br>
         Database ID: {database_id}
         </p>
-        <p style='font-size: 16px; color: #666; margin-top: 15px;'>
+        <p style='font-size: 18px; color: #666; margin-top: 15px;'>
         ⚠️ This action cannot be undone!
         </p>
         """)

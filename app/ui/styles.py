@@ -605,6 +605,58 @@ class AppStyles:
                 }}
             """
         }
+      
+    @staticmethod
+    def get_exit_dialog_exit_button_style():
+        """Style for exit button in exit confirmation dialog"""
+        return """
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #e74c3c, stop:1 #c0392b);
+                color: white;
+                border: none;
+                border-radius: 8px;
+                padding: 12px 20px;
+                font-size: 20px;
+                font-weight: bold;
+                min-width: 120px;
+                min-height: 45px;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #c0392b, stop:1 #a93226);
+                transform: scale(1.05);
+            }
+            QPushButton:pressed {
+                transform: scale(0.95);
+            }
+        """
+    
+    @staticmethod
+    def get_exit_dialog_cancel_button_style():
+        """Style for cancel button in exit confirmation dialog"""
+        return """
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #95a5a6, stop:1 #7f8c8d);
+                color: white;
+                border: none;
+                border-radius: 8px;
+                padding: 12px 20px;
+                font-size: 20px;
+                font-weight: bold;
+                min-width: 120px;
+                min-height: 45px;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #a5b5b6, stop:1 #8f9c9d);
+                transform: scale(1.05);
+            }
+            QPushButton:pressed {
+                transform: scale(0.95);
+            }
+        """
 
 
 class HistoryTabStyles:

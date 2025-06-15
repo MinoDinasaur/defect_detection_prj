@@ -736,19 +736,19 @@ class DefectDetectionApp(QMainWindow):
         try:
             # TẠO DIALOG XÁC NHẬN THOÁT
             msg_box = QMessageBox(self)
-            msg_box.setWindowTitle("🚪 Exit Application")
+            msg_box.setWindowTitle("Exit Application")
             msg_box.setIcon(QMessageBox.Question)
             
             # NỘI DUNG DIALOG VỚI FONT LỚN
             msg_box.setText(f"""
-            <h2 style='color: #e74c3c; font-size: 24px;'>🚪 Exit Defect Detection System</h2>
+            <h2 style='color: #e74c3c; font-size: 24px;'>Exit Defect Detection System</h2>
             <p style='font-size: 20px; margin: 15px 0;'>
             Are you sure you want to <b>exit</b> the application?
             </p>
-            <p style='font-size: 18px; background: #fff3cd; padding: 10px; border-left: 4px solid #ffc107;'>
+            <p style='font-size: 20px; background: #fff3cd; padding: 10px; border-left: 4px solid #ffc107;'>
             </p>
-            <p style='font-size: 16px; color: #666; margin-top: 15px;'>
-            💾 All data has been automatically saved to the database.
+            <p style='font-size: 18x; color: #666; margin-top: 15px;'>
+            All data has been automatically saved to the database.
             </p>
             """)
             
@@ -757,55 +757,12 @@ class DefectDetectionApp(QMainWindow):
             msg_box.resize(600, 400)
             
             # CUSTOM BUTTONS VỚI FONT LỚN HƠN
-            exit_btn = msg_box.addButton("🚪 Exit", QMessageBox.YesRole)
-            cancel_btn = msg_box.addButton("❌ Cancel", QMessageBox.NoRole)
+            exit_btn = msg_box.addButton("Exit", QMessageBox.YesRole)
+            cancel_btn = msg_box.addButton("Cancel", QMessageBox.NoRole)
             
-            # STYLE CHO BUTTONS
-            exit_btn.setStyleSheet("""
-                QPushButton {
-                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                        stop:0 #e74c3c, stop:1 #c0392b);
-                    color: white;
-                    border: none;
-                    border-radius: 8px;
-                    padding: 12px 20px;
-                    font-size: 18px;
-                    font-weight: bold;
-                    min-width: 120px;
-                    min-height: 45px;
-                }
-                QPushButton:hover {
-                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                        stop:0 #c0392b, stop:1 #a93226);
-                    transform: scale(1.05);
-                }
-                QPushButton:pressed {
-                    transform: scale(0.95);
-                }
-            """)
-            
-            cancel_btn.setStyleSheet("""
-                QPushButton {
-                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                        stop:0 #95a5a6, stop:1 #7f8c8d);
-                    color: white;
-                    border: none;
-                    border-radius: 8px;
-                    padding: 12px 20px;
-                    font-size: 18px;
-                    font-weight: bold;
-                    min-width: 120px;
-                    min-height: 45px;
-                }
-                QPushButton:hover {
-                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                        stop:0 #a5b5b6, stop:1 #8f9c9d);
-                    transform: scale(1.05);
-                }
-                QPushButton:pressed {
-                    transform: scale(0.95);
-                }
-            """)
+            # SỬ DỤNG STYLES TỪ AppStyles
+            exit_btn.setStyleSheet(AppStyles.get_exit_dialog_exit_button_style())
+            cancel_btn.setStyleSheet(AppStyles.get_exit_dialog_cancel_button_style())
             
             # HIỂN THỊ DIALOG VÀ XỬ LÝ KẾT QUẢ
             msg_box.exec()
@@ -815,7 +772,7 @@ class DefectDetectionApp(QMainWindow):
                 print("User confirmed exit - Starting cleanup...")
                 
                 # Hiển thị thông báo đang thoát
-                self.status_message.setText("🔄 Shutting down application...")
+                self.status_message.setText("Shutting down application...")
                 
                 # Stop barcode scanner thread
                 if hasattr(self, 'barcode_thread') and self.barcode_thread.isRunning():
@@ -845,7 +802,7 @@ class DefectDetectionApp(QMainWindow):
                     self.status_timer.stop()
                     print("Status timer stopped")
                 
-                print("✅ Cleanup completed successfully")
+                print("Cleanup completed successfully")
                 
                 # Accept the close event
                 event.accept()
