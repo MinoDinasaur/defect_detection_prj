@@ -116,7 +116,7 @@ class AppStyles:
     @staticmethod
     def get_button_style():
         """Enhanced button style with bigger size"""
-        font_size = AppStyles.scale_font_size(16)  # Increased from 14
+        font_size = AppStyles.scale_font_size(30)  # Increased from 14
         
         return f"""
             QPushButton {{
@@ -152,7 +152,7 @@ class AppStyles:
     @staticmethod
     def get_clear_button_style():
         """Enhanced clear button style with bigger size"""
-        font_size = AppStyles.scale_font_size(16)  # Increased from 14
+        font_size = AppStyles.scale_font_size(30)  # Increased from 14
         
         return f"""
             QPushButton {{
@@ -232,7 +232,7 @@ class AppStyles:
     
     @staticmethod
     def get_status_card_title_style():
-        font_size = AppStyles.scale_font_size(13)  # Increased from 12
+        font_size = AppStyles.scale_font_size(20)  # Increased from 12
         
         return f"""
             QLabel {{
@@ -246,7 +246,7 @@ class AppStyles:
     
     @staticmethod
     def get_status_card_value_style(color="#4a86e8"):
-        font_size = AppStyles.scale_font_size(12)  # Increased from 17
+        font_size = AppStyles.scale_font_size(18)  # Increased from 17
         scale_factor = AppStyles.get_screen_info()['scale_factor']
         min_height = int(12 * scale_factor)  # Increased from 30
         
@@ -302,7 +302,7 @@ class AppStyles:
     
     @staticmethod
     def get_header_title_style():
-        font_size = AppStyles.scale_font_size(18)  # Increased from 20
+        font_size = AppStyles.scale_font_size(30)  # Increased from 20
         
         return f"""
             QLabel {{
@@ -327,7 +327,7 @@ class AppStyles:
     
     @staticmethod
     def get_image_group_style():
-        font_size = AppStyles.scale_font_size(16) 
+        font_size = AppStyles.scale_font_size(27) 
         
         return f"""
             QGroupBox {{
@@ -339,13 +339,13 @@ class AppStyles:
                 margin-top: px;
                 margin-bottom: 0px
             }}
-            QGroupBox::title {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #3498db, stop:1 #2980b9);
-                color: white;
-                padding: 8px 12px;
-                border-radius: 10px;
-            }}
+            # QGroupBox::title {{
+            #     background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+            #         stop:0 #3498db, stop:1 #2980b9);
+            #     color: white;
+            #     padding: 2px 12px;
+            #     border-radius: 10px;
+            # }}
         """
     
     @staticmethod
@@ -357,14 +357,14 @@ class AppStyles:
                 border: 2px dashed #bdc3c7;
                 border-radius: 16px;
                 min-height: 300px;
-                margin-top: 28px;
+                margin-top: 0px;
                 margin-bottom: 0px
             }
         """
     
     @staticmethod
     def get_image_label_style():
-        font_size = AppStyles.scale_font_size(14)  # Increased from 18
+        font_size = AppStyles.scale_font_size(22)  # Increased from 18
         
         return f"""
             QLabel {{
@@ -378,7 +378,7 @@ class AppStyles:
     
     @staticmethod
     def get_image_info_style():
-        font_size = AppStyles.scale_font_size(14)  # Increased from 14
+        font_size = AppStyles.scale_font_size(18)  # Increased from 14
         
         return f"""
             QLabel {{
@@ -394,7 +394,7 @@ class AppStyles:
     
     @staticmethod
     def get_results_group_style():
-        font_size = AppStyles.scale_font_size(19)  # Increased from 18
+        font_size = AppStyles.scale_font_size(27)  # Increased from 18
         
         return f"""
             QGroupBox {{
@@ -403,7 +403,7 @@ class AppStyles:
                 color: #2c3e50;
                 border: 2px solid #e74c3c;
                 padding-top: 8px;
-                margin-top: 8px;
+                margin-top: 50px;
             }}
             QGroupBox::title {{
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
@@ -456,8 +456,8 @@ class AppStyles:
     
     @staticmethod
     def get_result_indicator_styles():
-        font_size_normal = AppStyles.scale_font_size(15)  # Increased from 14
-        font_size_large = AppStyles.scale_font_size(19)   # Increased from 18
+        font_size_normal = AppStyles.scale_font_size(20)  # Increased from 14
+        font_size_large = AppStyles.scale_font_size(22)   # Increased from 18
         
         return {
             'waiting': f"""
@@ -471,7 +471,7 @@ class AppStyles:
                     border: 2px solid #dee2e6;
                     color: #6c757d;
                     max-height: 140px;
-                    min-height: 80px;
+                    min-height: 20px;
                     qproperty-alignment: AlignCenter;
                 }}
             """,
@@ -486,7 +486,7 @@ class AppStyles:
                     font-size: {font_size_normal}px;
                     font-weight: bold;
                     max-height: 140px;
-                    min-height: 80px;
+                    min-height: 20px;
                     qproperty-alignment: AlignCenter;
                 }}
             """,
@@ -500,7 +500,7 @@ class AppStyles:
                     padding: 18px;
                     font-size: {font_size_large}px;
                     font-weight: bold;
-                    min-height: 80px;
+                    min-height: 20px;
                     qproperty-alignment: AlignCenter;
                 }}
             """,
@@ -514,7 +514,7 @@ class AppStyles:
                     padding: 18px;
                     font-size: {font_size_large}px;
                     font-weight: bold;
-                    min-height: 80px;
+                    min-height: 20px;
                     qproperty-alignment: AlignCenter;
                 }}
             """,
@@ -529,7 +529,7 @@ class AppStyles:
                     font-size: {font_size_normal}px;
                     font-weight: bold;
                     max-height: 140px;
-                    min-height: 80px;
+                    min-height: 20px;
                     qproperty-alignment: AlignCenter;
                 }}
             """
@@ -585,7 +585,7 @@ class HistoryTabStyles:
     
     @staticmethod
     def get_dialog_save_button_style():
-        font_size = AppStyles.scale_font_size(15)  # Increased from 14
+        font_size = AppStyles.scale_font_size(19)  # Increased from 14
         
         return f"""
             QPushButton {{
@@ -609,7 +609,7 @@ class HistoryTabStyles:
     
     @staticmethod
     def get_dialog_close_button_style():
-        font_size = AppStyles.scale_font_size(15)  # Increased from 14
+        font_size = AppStyles.scale_font_size(19)  # Increased from 14
         
         return f"""
             QPushButton {{
@@ -644,7 +644,7 @@ class HistoryTabStyles:
     
     @staticmethod
     def get_header_title_style():
-        font_size = AppStyles.scale_font_size(21)  # Increased from 20
+        font_size = AppStyles.scale_font_size(30)  # Increased from 20
         
         return f"""
             QLabel {{
@@ -655,23 +655,23 @@ class HistoryTabStyles:
             }}
         """
     
-    @staticmethod
-    def get_header_subtitle_style():
-        font_size = AppStyles.scale_font_size(14)  # Increased from 13
+    # @staticmethod
+    # def get_header_subtitle_style():
+    #     font_size = AppStyles.scale_font_size(14)  # Increased from 13
         
-        return f"""
-            QLabel {{
-                color: rgba(255, 255, 255, 0.8);
-                font-size: {font_size}px;
-                margin: 0;
-            }}
-        """
+    #     return f"""
+    #         QLabel {{
+    #             color: rgba(255, 255, 255, 0.8);
+    #             font-size: {font_size}px;
+    #             margin: 0;
+    #         }}
+    #     """
     
     @staticmethod
     def get_filter_group_style():
-        font_size = AppStyles.scale_font_size(17)  # Increased from 16
-        input_font_size = AppStyles.scale_font_size(14)  # Increased from 13
-        button_font_size = AppStyles.scale_font_size(14)  # Increased from 13
+        font_size = AppStyles.scale_font_size(19)  # Increased from 16
+        input_font_size = AppStyles.scale_font_size(19)  # Increased from 13
+        button_font_size = AppStyles.scale_font_size(19)  # Increased from 13
         
         return f"""
             QGroupBox {{
@@ -733,7 +733,7 @@ class HistoryTabStyles:
     
     @staticmethod
     def get_quick_filter_button_style():
-        font_size = AppStyles.scale_font_size(13)  # Increased from 12
+        font_size = AppStyles.scale_font_size(19)  # Increased from 12
         
         return f"""
             QPushButton {{
@@ -754,8 +754,8 @@ class HistoryTabStyles:
     
     @staticmethod
     def get_table_style():
-        font_size = AppStyles.scale_font_size(14)  # Increased from 13
-        header_font_size = AppStyles.scale_font_size(13)  # Increased from 12
+        font_size = AppStyles.scale_font_size(18)  # Increased from 13
+        header_font_size = AppStyles.scale_font_size(27)  # Increased from 12
         
         return f"""
             QTableWidget {{

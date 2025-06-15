@@ -74,7 +74,7 @@ class ImageViewDialog(QDialog):
         button_layout = QHBoxLayout()
         button_layout.addStretch()
         
-        save_button = QPushButton("💾 Save Image")
+        save_button = QPushButton("Save Image")
         save_button.clicked.connect(lambda: self.save_image(pixmap))
         save_button.setStyleSheet(HistoryTabStyles.get_dialog_save_button_style())
         
@@ -150,7 +150,7 @@ class DetectionHistoryTab(QWidget):
         header_layout.setContentsMargins(12, 8, 12, 8)  # Giảm padding
         
         # Compact title - chỉ 1 dòng
-        title_label = QLabel("📊 Detection History")  # Rút gọn title
+        title_label = QLabel("Detection History")  # Rút gọn title
         title_label.setStyleSheet(HistoryTabStyles.get_compact_header_title_style())
         
         header_layout.addWidget(title_label)
@@ -159,7 +159,7 @@ class DetectionHistoryTab(QWidget):
         main_layout.addWidget(header_frame)
         
         # === COMPACT Filter Section ===
-        filter_group = QGroupBox("🔍 Filters")  # Rút gọn title
+        filter_group = QGroupBox("Filters")  # Rút gọn title
         filter_group.setStyleSheet(HistoryTabStyles.get_compact_filter_group_style())
         
         # SINGLE ROW layout cho tất cả controls
@@ -273,7 +273,7 @@ class DetectionHistoryTab(QWidget):
         nav_layout = QHBoxLayout()
         nav_layout.setSpacing(4)  # Giảm spacing
         
-        self.first_page_btn = QPushButton("⏮️")  # Chỉ icon
+        self.first_page_btn = QPushButton("⬅️⬅️")  # Chỉ icon
         self.first_page_btn.clicked.connect(self.go_to_first_page)
         
         self.prev_page_btn = QPushButton("⬅️")  # Chỉ icon
@@ -285,7 +285,7 @@ class DetectionHistoryTab(QWidget):
         self.next_page_btn = QPushButton("➡️")  # Chỉ icon
         self.next_page_btn.clicked.connect(self.go_to_next_page)
         
-        self.last_page_btn = QPushButton("⏭️")  # Chỉ icon
+        self.last_page_btn = QPushButton("➡️➡️")  # Chỉ icon
         self.last_page_btn.clicked.connect(self.go_to_last_page)
         
         # Apply compact pagination button style
@@ -337,7 +337,7 @@ class DetectionHistoryTab(QWidget):
         details_frame_layout.setSpacing(12)
         
         # Enhanced detail labels
-        details_title = QLabel("📋 Selected Detection Details")
+        details_title = QLabel("Selected Detection Details")
         details_title.setStyleSheet(HistoryTabStyles.get_details_title_style())
         details_frame_layout.addWidget(details_title)
         
@@ -347,18 +347,18 @@ class DetectionHistoryTab(QWidget):
         details_grid.setContentsMargins(0, 8, 0, 8)
         
         # Defect info - spans full width
-        self.details_defect = QLabel("🔧 None selected")
+        self.details_defect = QLabel("None selected")
         self.details_defect.setWordWrap(True)
         self.details_defect.setMinimumHeight(40)
         details_grid.addWidget(self.details_defect, 0, 0, 1, 2)
         
         # Time and Barcode in separate rows for better readability
-        self.details_time = QLabel("⏰ None selected")
+        self.details_time = QLabel("None selected")
         self.details_time.setWordWrap(True)
         self.details_time.setMinimumHeight(35)
         details_grid.addWidget(self.details_time, 1, 0, 1, 2)
         
-        self.details_barcode = QLabel("📦 None selected")
+        self.details_barcode = QLabel("None selected")
         self.details_barcode.setWordWrap(True)
         self.details_barcode.setMinimumHeight(35)
         details_grid.addWidget(self.details_barcode, 2, 0, 1, 2)
@@ -375,8 +375,8 @@ class DetectionHistoryTab(QWidget):
         actions_layout.setContentsMargins(0, 16, 0, 0)
         
         button_configs = [
-            ("📤 Export Detection", self.export_detection, "#f39c12"),
-            ("🗑️ Delete Detection", self.delete_detection, "#e74c3c")
+            ("Export Detection", self.export_detection, "#f39c12"),
+            ("Delete Detection", self.delete_detection, "#e74c3c")
         ]
         
         self.action_buttons = []
@@ -503,14 +503,14 @@ class DetectionHistoryTab(QWidget):
                 self.history_table.setItem(i, 5, barcode_item)
             
             # Update pagination controls
-            self.update_pagination_controls();
+            self.update_pagination_controls()
             
             # Update parent status
             if hasattr(self.parent, 'status_message'):
                 start_record = (self.current_page - 1) * self.page_size + 1 if self.total_records > 0 else 0
                 end_record = min(self.current_page * self.page_size, self.total_records)
                 self.parent.status_message.setText(
-                    f"📊 Showing {start_record}-{end_record} of {self.total_records} records (Page {self.current_page}/{self.total_pages})"
+                    f"Showing {start_record}-{end_record} of {self.total_records} records (Page {self.current_page}/{self.total_pages})"
                 )
             
             self.reset_details()
@@ -759,9 +759,9 @@ class DetectionHistoryTab(QWidget):
             barcode = barcode_item.toolTip() if barcode_item else "No barcode"
             
             # Update detail labels với serial number
-            self.details_defect.setText(f"🔧 Defect: {defect}")
-            self.details_time.setText(f"⏰ Time: {time_str}")
-            self.details_barcode.setText(f"📦 Barcode: {barcode} | Serial: #{serial_number}")
+            self.details_defect.setText(f"Defect: {defect}")
+            self.details_time.setText(f"Time: {time_str}")
+            self.details_barcode.setText(f"Barcode: {barcode} | Serial: #{serial_number}")
             
             # Style based on defect status
             defect_styles = HistoryTabStyles.get_defect_status_styles()

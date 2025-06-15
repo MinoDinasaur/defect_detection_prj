@@ -45,7 +45,7 @@ class PylonCamera:
     #         # Close the camera to release resources
     #         self.camera.Close()
 
-    def capture_image_from_file(self, file_path = "/home/ducanh/Desktop/defect_detection_prj/storage/captured_images/captured_image_20250514_115344.png"):
+    def capture_image_from_file(self, file_path = "./storage/captured_images/captured_image_20250514_115344.png"):
         """
         Load an image from file and save it to the database (for testing purposes).
 
