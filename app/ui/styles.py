@@ -1,4 +1,46 @@
+from PySide6.QtWidgets import QApplication
+from PySide6.QtCore import QRect
+
 class AppStyles:
+    @staticmethod
+    def get_screen_info():
+        """Get current screen information for responsive scaling"""
+        screen = QApplication.primaryScreen()
+        screen_rect = screen.availableGeometry()
+        dpi = screen.logicalDotsPerInch()
+        
+        # Base design: 1920x1080 at 96 DPI
+        base_width = 1920
+        base_height = 1080
+        base_dpi = 96
+        
+        width_scale = screen_rect.width() / base_width
+        height_scale = screen_rect.height() / base_height
+        dpi_scale = dpi / base_dpi
+        
+        # Use average scale factor
+        scale_factor = min(width_scale, height_scale) * dpi_scale
+        scale_factor = max(0.7, min(2.0, scale_factor))  # Clamp between 0.7x and 2.0x
+        
+        return {
+            'scale_factor': scale_factor,
+            'screen_width': screen_rect.width(),
+            'screen_height': screen_rect.height(),
+            'dpi': dpi
+        }
+    
+    @staticmethod
+    def scale_size(base_size):
+        """Scale size based on screen"""
+        info = AppStyles.get_screen_info()
+        return int(base_size * info['scale_factor'])
+    
+    @staticmethod
+    def scale_font_size(base_size):
+        """Scale font size based on screen"""
+        info = AppStyles.get_screen_info()
+        return max(10, int(base_size * info['scale_factor']))
+    
     @staticmethod
     def get_main_window_style():
         return """
@@ -41,15 +83,15 @@ class AppStyles:
                 border-bottom: none;
                 border-top-left-radius: 6px;
                 border-top-right-radius: 6px;
-                padding: 4px 12px;
+                padding: 8px 16px;
                 margin-right: 1px;
                 font-weight: 500;
-                font-size: 13px;
+                font-size: 14px;
                 color: #495057;
-                min-width: 80px;
-                max-width: 160px;
-                height: 24px;
-                max-height: 24px;
+                min-width: 100px;
+                max-width: 180px;
+                height: 32px;
+                max-height: 32px;
             }
             QTabBar::tab:selected {
                 background: white;
@@ -63,7 +105,7 @@ class AppStyles:
             }
             QTabBar {
                 qproperty-drawBase: 0;
-                max-height: 26px;
+                max-height: 34px;
             }
             QScrollArea {
                 border: none;
@@ -73,61 +115,74 @@ class AppStyles:
     
     @staticmethod
     def get_button_style():
-        return """
-            QPushButton {
+        """Enhanced button style with bigger size"""
+        font_size = AppStyles.scale_font_size(16)  # Increased from 14
+        
+        return f"""
+            QPushButton {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 #4a86e8, stop:1 #3a76d8);
                 color: white;
                 border: none;
-                border-radius: 8px;
-                padding: 12px 20px;
+                border-radius: 12px;
+                padding: 16px 28px;
                 font-weight: bold;
-                font-size: 14px;
-                min-height: 20px;
-            }
-            QPushButton:hover {
+                font-size: {font_size}px;
+                min-height: 48px;
+                min-width: 140px;
+            }}
+            QPushButton:hover {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 #5a96f8, stop:1 #4a86e8);
-                transform: translateY(-1px);
-            }
-            QPushButton:pressed {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(74, 134, 232, 0.3);
+            }}
+            QPushButton:pressed {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 #2a66c8, stop:1 #1a56b8);
                 transform: translateY(1px);
-            }
-            QPushButton:disabled {
+            }}
+            QPushButton:disabled {{
                 background: #cccccc;
                 color: #666666;
-            }
+                transform: none;
+            }}
         """
     
     @staticmethod
     def get_clear_button_style():
-        return """
-            QPushButton {
+        """Enhanced clear button style with bigger size"""
+        font_size = AppStyles.scale_font_size(16)  # Increased from 14
+        
+        return f"""
+            QPushButton {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 #95a5a6, stop:1 #7f8c8d);
                 color: white;
                 border: none;
-                border-radius: 8px;
-                padding: 12px 20px;
+                border-radius: 12px;
+                padding: 16px 28px;
                 font-weight: bold;
-                font-size: 14px;
-                min-height: 20px;
-            }
-            QPushButton:hover {
+                font-size: {font_size}px;
+                min-height: 48px;
+                min-width: 140px;
+            }}
+            QPushButton:hover {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 #a5b5b6, stop:1 #8f9c9d);
-            }
-            QPushButton:pressed {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(149, 165, 166, 0.3);
+            }}
+            QPushButton:pressed {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 #75858e, stop:1 #6f7c7d);
                 transform: translateY(1px);
-            }
-            QPushButton:disabled {
+            }}
+            QPushButton:disabled {{
                 background: #cccccc;
                 color: #666666;
-            }
+                transform: none;
+            }}
         """
     
     @staticmethod
@@ -137,9 +192,10 @@ class AppStyles:
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                     stop:0 #ffffff, stop:1 #f8f9fa);
                 border-top: 1px solid #dee2e6;
-                padding: 8px;
-                font-size: 13px;
+                padding: 10px;
+                font-size: 14px;
                 color: #495057;
+                min-height: 24px;
             }
         """
     
@@ -148,16 +204,17 @@ class AppStyles:
         return """
             QProgressBar {
                 border: 1px solid #dee2e6;
-                border-radius: 8px;
+                border-radius: 10px;
                 text-align: center;
                 font-weight: bold;
                 background: #f8f9fa;
-                height: 20px;
+                height: 24px;
+                min-height: 24px;
             }
             QProgressBar::chunk {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                     stop:0 #4a86e8, stop:1 #3a76d8);
-                border-radius: 7px;
+                border-radius: 9px;
             }
         """
     
@@ -167,34 +224,41 @@ class AppStyles:
             QFrame {
                 background: white;
                 border: 1px solid #e1e5e9;
-                border-radius: 8px;
-                padding: 6px;
-                margin: 2px;
+                border-radius: 10px;
+                padding: 2px;
+                margin: 0px;
             }
         """
     
     @staticmethod
     def get_status_card_title_style():
-        return """
-            QLabel {
+        font_size = AppStyles.scale_font_size(13)  # Increased from 12
+        
+        return f"""
+            QLabel {{
                 color: #2c3e50;
-                font-size: 12px;
+                font-size: {font_size}px;
                 font-weight: 600;
                 margin: 0;
-                padding: 1px 0;
-            }
+                padding: 2px 0;
+            }}
         """
     
     @staticmethod
     def get_status_card_value_style(color="#4a86e8"):
+        font_size = AppStyles.scale_font_size(12)  # Increased from 17
+        scale_factor = AppStyles.get_screen_info()['scale_factor']
+        min_height = int(12 * scale_factor)  # Increased from 30
+        
         return f"""
             QLabel {{
                 color: {color};
-                font-size: 17px;
-                font-weight: 700;
+                font-size: {font_size}px;
+                font-weight: 600;
                 margin: 0;
-                padding: 8px 0;
-                min-height: 30px;
+                padding: 3px 0;
+                min-height: {min_height}px;
+                qproperty-alignment: AlignCenter;
             }}
         """
     
@@ -206,60 +270,82 @@ class AppStyles:
                     stop:0 #d4edda, stop:1 #c3e6cb);
                 color: #155724;
                 border: 1px solid #c3e6cb;
-                border-radius: 4px;
-                padding: 4px 8px;
+                border-radius: 6px;
+                padding: 6px 10px;
                 font-weight: bold;
+                font-size: 14px;
             }
         """
     
+    @staticmethod
+    # def get_header_frame_style():
+    #     return """
+    #         QFrame {
+    #             background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+    #                 stop:0 #667eea, stop:1 #764ba2);
+    #             border-radius: 12px;
+    #             padding: 16px 20px;
+    #             margin: 4px;
+    #         }
+    #     """
+
     @staticmethod
     def get_header_frame_style():
         return """
             QFrame {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                     stop:0 #667eea, stop:1 #764ba2);
-                border-radius: 8px;
-                padding: 12px 16px;
+                border-radius: 10px;
+                padding: 10px 10px;
             }
         """
     
     @staticmethod
     def get_header_title_style():
-        return """
-            QLabel {
+        font_size = AppStyles.scale_font_size(18)  # Increased from 20
+        
+        return f"""
+            QLabel {{
                 color: white;
-                font-size: 20px;
+                font-size: {font_size}px;
                 font-weight: bold;
                 margin: 0;
-            }
+            }}
         """
     
-    @staticmethod
-    def get_header_subtitle_style():
-        return """
-            QLabel {
-                color: rgba(255, 255, 255, 0.8);
-                font-size: 13px;
-                margin: 0;
-            }
-        """
+    # @staticmethod
+    # def get_header_subtitle_style():
+    #     font_size = AppStyles.scale_font_size(14)  # Increased from 13
+        
+    #     return f"""
+    #         QLabel {{
+    #             color: rgba(255, 255, 255, 0.8);
+    #             font-size: {font_size}px;
+    #             margin: 0;
+    #         }}
+    #     """
     
     @staticmethod
     def get_image_group_style():
-        return """
-            QGroupBox {
-                font-size: 18px;
+        font_size = AppStyles.scale_font_size(16) 
+        
+        return f"""
+            QGroupBox {{
+                font-size: {font_size}px;
                 font-weight: 600;
                 color: #2c3e50;
-                border: 2px solid #3498db;
-            }
-            QGroupBox::title {
+                border: 0px solid #3498db;
+                padding-top: 0px;
+                margin-top: px;
+                margin-bottom: 0px
+            }}
+            QGroupBox::title {{
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                     stop:0 #3498db, stop:1 #2980b9);
                 color: white;
-                padding: 8px 20px;
-                border-radius: 8px;
-            }
+                padding: 8px 12px;
+                border-radius: 10px;
+            }}
         """
     
     @staticmethod
@@ -268,78 +354,92 @@ class AppStyles:
             QFrame {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
                     stop:0 #ffffff, stop:1 #f8f9fa);
-                border: 3px dashed #bdc3c7;
+                border: 2px dashed #bdc3c7;
                 border-radius: 16px;
-                min-height: 400px;
+                min-height: 300px;
+                margin-top: 28px;
+                margin-bottom: 0px
             }
         """
     
     @staticmethod
     def get_image_label_style():
-        return """
-            QLabel {
-                font-size: 18px;
+        font_size = AppStyles.scale_font_size(14)  # Increased from 18
+        
+        return f"""
+            QLabel {{
+                font-size: {font_size}px;
                 color: #7f8c8d;
                 background: transparent;
-                padding: 40px;
-                line-height: 1.6;
-            }
+                padding: 0px;
+                line-height:0;
+            }}
         """
     
     @staticmethod
     def get_image_info_style():
-        return """
-            QLabel {
-                font-size: 14px;
+        font_size = AppStyles.scale_font_size(14)  # Increased from 14
+        
+        return f"""
+            QLabel {{
+                font-size: {font_size}px;
                 color: #34495e;
                 background: rgba(52, 152, 219, 0.1);
-                padding: 12px;
-                border-radius: 8px;
+                padding: 0px;
+                border-radius: 10px;
                 font-weight: 500;
-            }
+                margin: 0px;
+            }}
         """
     
     @staticmethod
     def get_results_group_style():
-        return """
-            QGroupBox {
-                font-size: 18px;
+        font_size = AppStyles.scale_font_size(19)  # Increased from 18
+        
+        return f"""
+            QGroupBox {{
+                font-size: {font_size}px;
                 font-weight: 600;
                 color: #2c3e50;
                 border: 2px solid #e74c3c;
-            }
-            QGroupBox::title {
+                padding-top: 8px;
+                margin-top: 8px;
+            }}
+            QGroupBox::title {{
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                     stop:0 #e74c3c, stop:1 #c0392b);
                 color: white;
-                padding: 8px 20px;
-                border-radius: 8px;
-            }
+                padding: 10px 24px;
+                border-radius: 10px;
+            }}
         """
     
     @staticmethod
     def get_results_list_style():
-        return """
-            QListWidget {
+        font_size = AppStyles.scale_font_size(16)  # Increased from 15
+        
+        return f"""
+            QListWidget {{
                 background: white;
                 border: 2px solid #ecf0f1;
                 border-radius: 12px;
-                padding: 16px;
-                font-size: 15px;
-                min-height: 300px;
-            }
-            QListWidget::item {
-                padding: 16px;
-                margin: 6px 0;
-                border-radius: 8px;
+                padding: 18px;
+                font-size: {font_size}px;
+                min-height: 320px;
+                margin: 4px;
+            }}
+            QListWidget::item {{
+                padding: 18px;
+                margin: 8px 0;
+                border-radius: 10px;
                 border-left: 4px solid transparent;
-            }
-            QListWidget::item:selected {
+            }}
+            QListWidget::item:selected {{
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                     stop:0 #e8f4fd, stop:1 #d4edda);
                 border-left: 4px solid #3498db;
                 color: #2c3e50;
-            }
+            }}
         """
     
     @staticmethod
@@ -349,81 +449,95 @@ class AppStyles:
                 background: white;
                 border: 1px solid #e0e6ed;
                 border-radius: 16px;
-                padding: 20px;
+                padding: 2px;
+                margin: 8px 4px 4px 4px;
             }
         """
     
     @staticmethod
     def get_result_indicator_styles():
+        font_size_normal = AppStyles.scale_font_size(15)  # Increased from 14
+        font_size_large = AppStyles.scale_font_size(19)   # Increased from 18
+        
         return {
-            'waiting': """
-                QLabel {
-                    font-size: 14px;
+            'waiting': f"""
+                QLabel {{
+                    font-size: {font_size_normal}px;
                     font-weight: bold;
                     border-radius: 12px;
-                    padding: 16px;
+                    padding: 18px;
                     background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                         stop:0 #f8f9fa, stop:1 #e9ecef);
                     border: 2px solid #dee2e6;
                     color: #6c757d;
-                    max-height: 120px;
-                }
+                    max-height: 140px;
+                    min-height: 80px;
+                    qproperty-alignment: AlignCenter;
+                }}
             """,
-            'processing': """
-                QLabel {
+            'processing': f"""
+                QLabel {{
                     background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                         stop:0 #fff3cd, stop:1 #ffeaa7);
                     color: #856404;
                     border: 3px solid #ffc107;
                     border-radius: 12px;
-                    padding: 16px;
-                    font-size: 14px;
+                    padding: 18px;
+                    font-size: {font_size_normal}px;
                     font-weight: bold;
-                    max-height: 120px;
-                }
+                    max-height: 140px;
+                    min-height: 80px;
+                    qproperty-alignment: AlignCenter;
+                }}
             """,
-            'passed': """
-                QLabel {
+            'passed': f"""
+                QLabel {{
                     background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                         stop:0 #e8f5e9, stop:1 #c8e6c9);
                     color: #2e7d32;
                     border: 3px solid #66bb6a;
                     border-radius: 12px;
-                    padding: 16px;
-                    font-size: 18px;
+                    padding: 18px;
+                    font-size: {font_size_large}px;
                     font-weight: bold;
-                }
+                    min-height: 80px;
+                    qproperty-alignment: AlignCenter;
+                }}
             """,
-            'failed': """
-                QLabel {
+            'failed': f"""
+                QLabel {{
                     background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                         stop:0 #ffebee, stop:1 #ffcdd2);
                     color: #c62828;
                     border: 3px solid #ef5350;
                     border-radius: 12px;
-                    padding: 16px;
-                    font-size: 18px;
+                    padding: 18px;
+                    font-size: {font_size_large}px;
                     font-weight: bold;
-                }
+                    min-height: 80px;
+                    qproperty-alignment: AlignCenter;
+                }}
             """,
-            'error': """
-                QLabel {
+            'error': f"""
+                QLabel {{
                     background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                         stop:0 #fff3e0, stop:1 #ffe0b2);
                     color: #e65100;
                     border: 3px solid #ff9800;
                     border-radius: 12px;
-                    padding: 16px;
-                    font-size: 14px;
+                    padding: 18px;
+                    font-size: {font_size_normal}px;
                     font-weight: bold;
-                    max-height: 120px;
-                }
+                    max-height: 140px;
+                    min-height: 80px;
+                    qproperty-alignment: AlignCenter;
+                }}
             """
         }
 
 
 class HistoryTabStyles:
-    """Styles specifically for Detection History Tab"""
+    """Styles specifically for Detection History Tab with bigger buttons"""
     
     @staticmethod
     def get_dialog_style():
@@ -440,20 +554,22 @@ class HistoryTabStyles:
             QFrame {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                     stop:0 #4a86e8, stop:1 #3a76d8);
-                border-radius: 8px;
-                padding: 12px;
+                border-radius: 10px;
+                padding: 14px;
             }
         """
     
     @staticmethod
     def get_dialog_title_style():
-        return """
-            QLabel {
+        font_size = AppStyles.scale_font_size(19)  # Increased from 18
+        
+        return f"""
+            QLabel {{
                 color: white;
-                font-size: 18px;
+                font-size: {font_size}px;
                 font-weight: bold;
                 margin: 0;
-            }
+            }}
         """
     
     @staticmethod
@@ -462,47 +578,57 @@ class HistoryTabStyles:
             QLabel {
                 background: white;
                 border: 2px solid #e0e6ed;
-                border-radius: 8px;
-                padding: 8px;
+                border-radius: 10px;
+                padding: 10px;
             }
         """
     
     @staticmethod
     def get_dialog_save_button_style():
-        return """
-            QPushButton {
+        font_size = AppStyles.scale_font_size(15)  # Increased from 14
+        
+        return f"""
+            QPushButton {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 #28a745, stop:1 #218838);
                 color: white;
                 border: none;
-                border-radius: 6px;
-                padding: 8px 16px;
+                border-radius: 8px;
+                padding: 12px 20px;
                 font-weight: 600;
-                min-width: 100px;
-            }
-            QPushButton:hover {
+                font-size: {font_size}px;
+                min-width: 120px;
+                min-height: 40px;
+            }}
+            QPushButton:hover {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 #34ce57, stop:1 #28a745);
-            }
+                transform: translateY(-1px);
+            }}
         """
     
     @staticmethod
     def get_dialog_close_button_style():
-        return """
-            QPushButton {
+        font_size = AppStyles.scale_font_size(15)  # Increased from 14
+        
+        return f"""
+            QPushButton {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 #6c757d, stop:1 #5a6268);
                 color: white;
                 border: none;
-                border-radius: 6px;
-                padding: 8px 16px;
+                border-radius: 8px;
+                padding: 12px 20px;
                 font-weight: 600;
-                min-width: 80px;
-            }
-            QPushButton:hover {
+                font-size: {font_size}px;
+                min-width: 100px;
+                min-height: 40px;
+            }}
+            QPushButton:hover {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 #7c868d, stop:1 #6c757d);
-            }
+                transform: translateY(-1px);
+            }}
         """
     
     @staticmethod
@@ -511,161 +637,180 @@ class HistoryTabStyles:
             QFrame {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                     stop:0 #667eea, stop:1 #764ba2);
-                border-radius: 8px;
-                padding: 12px 16px;
+                border-radius: 10px;
+                padding: 10px 10px;
             }
         """
     
     @staticmethod
     def get_header_title_style():
-        return """
-            QLabel {
+        font_size = AppStyles.scale_font_size(21)  # Increased from 20
+        
+        return f"""
+            QLabel {{
                 color: white;
-                font-size: 20px;
+                font-size: {font_size}px;
                 font-weight: bold;
                 margin: 0;
-            }
+            }}
         """
     
     @staticmethod
     def get_header_subtitle_style():
-        return """
-            QLabel {
+        font_size = AppStyles.scale_font_size(14)  # Increased from 13
+        
+        return f"""
+            QLabel {{
                 color: rgba(255, 255, 255, 0.8);
-                font-size: 13px;
+                font-size: {font_size}px;
                 margin: 0;
-            }
+            }}
         """
     
     @staticmethod
     def get_filter_group_style():
-        return """
-            QGroupBox {
+        font_size = AppStyles.scale_font_size(17)  # Increased from 16
+        input_font_size = AppStyles.scale_font_size(14)  # Increased from 13
+        button_font_size = AppStyles.scale_font_size(14)  # Increased from 13
+        
+        return f"""
+            QGroupBox {{
                 font-weight: 600;
-                font-size: 16px;
+                font-size: {font_size}px;
                 color: #2c3e50;
                 border: 2px solid #3498db;
                 border-radius: 12px;
-                margin-top: 10px;
-                padding: 10px;
+                margin-top: 12px;
+                padding: 12px;
                 background: rgba(255, 255, 255, 0.95);
-            }
-            QGroupBox::title {
+            }}
+            QGroupBox::title {{
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                     stop:0 #3498db, stop:1 #2980b9);
                 color: white;
-                padding: 6px 16px;
+                padding: 8px 18px;
                 border-radius: 8px;
                 margin-left: 10px;
-            }
-            QDateEdit, QComboBox {
-                padding: 6px 10px;
+            }}
+            QDateEdit, QComboBox {{
+                padding: 8px 12px;
                 border: 2px solid #bdc3c7;
-                border-radius: 6px;
-                font-size: 13px;
+                border-radius: 8px;
+                font-size: {input_font_size}px;
                 background: white;
-                min-width: 100px;
-                max-height: 32px;
-            }
-            QDateEdit:focus, QComboBox:focus {
+                min-width: 120px;
+                min-height: 36px;
+                max-height: 36px;
+            }}
+            QDateEdit:focus, QComboBox:focus {{
                 border: 2px solid #3498db;
-            }
-            QPushButton {
+            }}
+            QPushButton {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 #3498db, stop:1 #2980b9);
                 color: white;
                 border: none;
-                border-radius: 6px;
-                padding: 8px 12px;
+                border-radius: 8px;
+                padding: 10px 16px;
                 font-weight: 600;
-                min-width: 80px;
-                max-height: 32px;
-                font-size: 13px;
-            }
-            QPushButton:hover {
+                min-width: 90px;
+                min-height: 36px;
+                max-height: 36px;
+                font-size: {button_font_size}px;
+            }}
+            QPushButton:hover {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 #4ea8eb, stop:1 #3990c9);
-            }
-            QLabel {
-                font-size: 13px;
+                transform: translateY(-1px);
+            }}
+            QLabel {{
+                font-size: {button_font_size}px;
                 font-weight: 500;
                 color: #2c3e50;
-                padding: 2px;
-            }
+                padding: 3px;
+            }}
         """
     
     @staticmethod
     def get_quick_filter_button_style():
-        return """
-            QPushButton {
+        font_size = AppStyles.scale_font_size(13)  # Increased from 12
+        
+        return f"""
+            QPushButton {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 #95a5a6, stop:1 #7f8c8d);
-                min-width: 70px;
-                max-height: 32px;
-                font-size: 12px;
-                padding: 6px 10px;
-            }
-            QPushButton:hover {
+                min-width: 80px;
+                min-height: 36px;
+                max-height: 36px;
+                font-size: {font_size}px;
+                padding: 8px 12px;
+            }}
+            QPushButton:hover {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 #a5b5b6, stop:1 #8f9c8d);
-            }
+                transform: translateY(-1px);
+            }}
         """
     
     @staticmethod
     def get_table_style():
-        return """
-            QTableWidget {
+        font_size = AppStyles.scale_font_size(14)  # Increased from 13
+        header_font_size = AppStyles.scale_font_size(13)  # Increased from 12
+        
+        return f"""
+            QTableWidget {{
                 border: 2px solid #bdc3c7;
                 border-radius: 12px;
                 background-color: white;
                 gridline-color: #ecf0f1;
-                font-size: 13px;
+                font-size: {font_size}px;
                 selection-background-color: #e8f4fd;
                 outline: none;
-            }
-            QHeaderView::section {
+            }}
+            QHeaderView::section {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 #34495e, stop:1 #2c3e50);
                 color: white;
                 border: 1px solid #2c3e50;
-                padding: 10px 8px;
+                padding: 12px 10px;
                 font-weight: bold;
-                font-size: 12px;
+                font-size: {header_font_size}px;
                 text-align: center;
-            }
-            QHeaderView::section:hover {
+                min-height: 20px;
+            }}
+            QHeaderView::section:hover {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 #3d566e, stop:1 #34495e);
-            }
-            QTableWidget::item {
-                padding: 8px 6px;
+            }}
+            QTableWidget::item {{
+                padding: 10px 8px;
                 border-bottom: 1px solid #ecf0f1;
                 border-right: 1px solid #f8f9fa;
                 word-wrap: break-word;
-            }
-            QTableWidget::item:selected {
+            }}
+            QTableWidget::item:selected {{
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                     stop:0 #e8f4fd, stop:1 #d4edda);
                 color: #2c3e50;
                 border: 1px solid #4a86e8;
-            }
-            QTableWidget::item:hover {
+            }}
+            QTableWidget::item:hover {{
                 background-color: #f8f9fa;
                 border: 1px solid #dee2e6;
-            }
-            QScrollBar:vertical {
+            }}
+            QScrollBar:vertical {{
                 background: #f8f9fa;
-                width: 12px;
-                border-radius: 6px;
-            }
-            QScrollBar::handle:vertical {
+                width: 14px;
+                border-radius: 7px;
+            }}
+            QScrollBar::handle:vertical {{
                 background: #dee2e6;
-                border-radius: 6px;
-                min-height: 20px;
-            }
-            QScrollBar::handle:vertical:hover {
+                border-radius: 7px;
+                min-height: 24px;
+            }}
+            QScrollBar::handle:vertical:hover {{
                 background: #adb5bd;
-            }
+            }}
         """
     
     @staticmethod
@@ -675,42 +820,48 @@ class HistoryTabStyles:
                 background: white;
                 border: 2px solid #e0e6ed;
                 border-radius: 12px;
-                padding: 8px;
+                padding: 10px;
                 margin: 4px;
             }
         """
     
     @staticmethod
     def get_details_title_style():
-        return """
-            QLabel {
-                font-size: 16px;
+        font_size = AppStyles.scale_font_size(17)  # Increased from 16
+        
+        return f"""
+            QLabel {{
+                font-size: {font_size}px;
                 font-weight: bold;
                 color: #2c3e50;
-                margin-bottom: 8px;
-                padding: 4px 0;
+                margin-bottom: 10px;
+                padding: 6px 0;
                 border-bottom: 1px solid #e9ecef;
-            }
+            }}
         """
     
     @staticmethod
     def get_details_label_style():
-        return """
-            QLabel {
-                font-size: 13px;
+        font_size = AppStyles.scale_font_size(14)  # Increased from 13
+        
+        return f"""
+            QLabel {{
+                font-size: {font_size}px;
                 color: #34495e;
-                padding: 8px 12px;
+                padding: 10px 14px;
                 background: #f8f9fa;
-                border-radius: 6px;
-                margin: 2px 0;
+                border-radius: 8px;
+                margin: 3px 0;
                 border-left: 3px solid #dee2e6;
                 line-height: 1.4;
-            }
+            }}
         """
     
     @staticmethod
     def get_action_button_style(color):
-        """Get action button style with dynamic colors"""
+        """Get action button style with dynamic colors and bigger size"""
+        font_size = AppStyles.scale_font_size(14)  # Increased from 13
+        
         color_map = {
             "#3498db": {"dark": "#2980b9", "light": "#5dade2"},
             "#2ecc71": {"dark": "#27ae60", "light": "#58d68d"},
@@ -726,16 +877,18 @@ class HistoryTabStyles:
                     stop:0 {color}, stop:1 {colors['dark']});
                 color: white;
                 border: none;
-                border-radius: 8px;
-                padding: 12px 16px;
+                border-radius: 10px;
+                padding: 14px 18px;
                 font-weight: 600;
-                font-size: 13px;
+                font-size: {font_size}px;
                 min-width: 100%;
+                min-height: 44px;
             }}
             QPushButton:hover {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 {colors['light']}, stop:1 {color});
-                transform: translateY(-1px);
+                transform: translateY(-2px);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             }}
             QPushButton:pressed {{
                 transform: translateY(1px);
@@ -752,57 +905,61 @@ class HistoryTabStyles:
         return """
             QLabel {
                 border: 1px solid #dee2e6; 
-                border-radius: 3px;
+                border-radius: 4px;
+                padding: 2px;
             }
             QLabel:hover {
                 border: 2px solid #4a86e8;
                 background-color: rgba(74, 134, 232, 0.1);
+                transform: scale(1.02);
             }
         """
     
     @staticmethod
     def get_defect_status_styles():
+        font_size = AppStyles.scale_font_size(14)  # Increased from 13
+        
         return {
-            'failed': """
-                QLabel {
-                    font-size: 13px;
+            'failed': f"""
+                QLabel {{
+                    font-size: {font_size}px;
                     color: #721c24;
-                    padding: 8px 12px;
+                    padding: 10px 14px;
                     background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                         stop:0 #f8d7da, stop:1 #f5c6cb);
-                    border-radius: 6px;
-                    margin: 2px 0;
+                    border-radius: 8px;
+                    margin: 3px 0;
                     border-left: 3px solid #dc3545;
                     font-weight: 600;
                     line-height: 1.4;
-                }
+                }}
             """,
-            'passed': """
-                QLabel {
-                    font-size: 13px;
+            'passed': f"""
+                QLabel {{
+                    font-size: {font_size}px;
                     color: #155724;
-                    padding: 8px 12px;
+                    padding: 10px 14px;
                     background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                         stop:0 #d4edda, stop:1 #c3e6cb);
-                    border-radius: 6px;
-                    margin: 2px 0;
+                    border-radius: 8px;
+                    margin: 3px 0;
                     border-left: 3px solid #28a745;
                     font-weight: 600;
                     line-height: 1.4;
-                }
+                }}
             """,
-            'none_selected': """
-                QLabel {
-                    font-size: 13px;
+            'none_selected': f"""
+                QLabel {{
+                    font-size: {font_size}px;
                     color: #495057;
-                    padding: 8px 12px;
+                    padding: 10px 14px;
                     background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                         stop:0 #f8f9fa, stop:1 #e9ecef);
-                    border-radius: 6px;
-                    margin: 2px 0;
+                    border-radius: 8px;
+                    margin: 3px 0;
                     border-left: 3px solid #dee2e6;
                     line-height: 1.4;
-                }
+                }}
             """
         }
     
@@ -812,108 +969,122 @@ class HistoryTabStyles:
             QFrame {
                 background: white;
                 border: 1px solid #e0e6ed;
-                border-radius: 8px;
-                padding: 12px;
+                border-radius: 10px;
+                padding: 14px;
                 margin: 4px;
+                min-height: 20px;
             }
         """
     
     @staticmethod
     def get_pagination_records_info_style():
-        return """
-            QLabel {
+        font_size = AppStyles.scale_font_size(14)  # Increased from 13
+        
+        return f"""
+            QLabel {{
                 color: #6c757d;
-                font-size: 13px;
+                font-size: {font_size}px;
                 font-weight: 500;
-                padding: 4px;
-            }
+                padding: 6px;
+            }}
         """
     
     @staticmethod
     def get_pagination_page_info_style():
-        return """
-            QLabel {
+        font_size = AppStyles.scale_font_size(15)  # Increased from 14
+        
+        return f"""
+            QLabel {{
                 font-weight: 600;
                 color: #2c3e50;
-                padding: 0 16px;
-                font-size: 14px;
-                min-width: 100px;
+                padding: 0 18px;
+                font-size: {font_size}px;
+                min-width: 120px;
                 text-align: center;
-            }
+            }}
         """
     
     @staticmethod
     def get_pagination_button_style():
-        return """
-            QPushButton {
+        font_size = AppStyles.scale_font_size(13)  # Increased from 12
+        
+        return f"""
+            QPushButton {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 #f8f9fa, stop:1 #e9ecef);
                 border: 1px solid #dee2e6;
-                border-radius: 6px;
-                padding: 8px 12px;
-                font-size: 12px;
+                border-radius: 8px;
+                padding: 10px 16px;
+                font-size: {font_size}px;
                 font-weight: 500;
-                min-width: 70px;
-                max-height: 36px;
-            }
-            QPushButton:hover {
+                min-width: 80px;
+                min-height: 40px;
+                max-height: 40px;
+            }}
+            QPushButton:hover {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 #e9ecef, stop:1 #dee2e6);
                 border: 1px solid #adb5bd;
                 transform: translateY(-1px);
-            }
-            QPushButton:pressed {
+            }}
+            QPushButton:pressed {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 #dee2e6, stop:1 #ced4da);
                 transform: translateY(1px);
-            }
-            QPushButton:disabled {
+            }}
+            QPushButton:disabled {{
                 background: #f8f9fa;
                 color: #6c757d;
                 border: 1px solid #dee2e6;
-            }
+                transform: none;
+            }}
         """
     
     @staticmethod
     def get_pagination_combo_style():
-        return """
-            QComboBox {
-                padding: 4px 8px;
+        font_size = AppStyles.scale_font_size(13)  # Increased from 12
+        
+        return f"""
+            QComboBox {{
+                padding: 6px 10px;
                 border: 1px solid #dee2e6;
-                border-radius: 4px;
-                font-size: 12px;
-                min-width: 50px;
-                max-height: 28px;
+                border-radius: 6px;
+                font-size: {font_size}px;
+                min-width: 60px;
+                min-height: 32px;
+                max-height: 32px;
                 background: white;
-            }
-            QComboBox:hover {
+            }}
+            QComboBox:hover {{
                 border: 1px solid #adb5bd;
-            }
-            QComboBox:focus {
+            }}
+            QComboBox:focus {{
                 border: 2px solid #4a86e8;
-            }
-            QComboBox::drop-down {
+            }}
+            QComboBox::drop-down {{
                 border: none;
-                width: 20px;
-            }
-            QComboBox::down-arrow {
+                width: 24px;
+            }}
+            QComboBox::down-arrow {{
                 image: none;
                 border-left: 4px solid transparent;
                 border-right: 4px solid transparent;
                 border-top: 4px solid #6c757d;
-                margin-right: 6px;
-            }
+                margin-right: 8px;
+            }}
         """
     
     @staticmethod
     def get_pagination_label_style():
-        return """
-            QLabel {
+        font_size = AppStyles.scale_font_size(13)  # Increased from 12
+        
+        return f"""
+            QLabel {{
                 color: #495057;
-                font-size: 12px;
+                font-size: {font_size}px;
                 font-weight: 500;
-                padding: 2px 4px;
-            }
+                padding: 3px 6px;
+            }}
         """
     
     @staticmethod
@@ -923,99 +1094,112 @@ class HistoryTabStyles:
             QFrame {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                     stop:0 #667eea, stop:1 #764ba2);
-                border-radius: 8px;
-                padding: 8px 12px;
-                max-height: 60px;
+                border-radius: 10px;
+                padding: 10px 10px;
+                max-height: 70px;
             }
         """
     
     @staticmethod
     def get_compact_header_title_style():
         """Compact header title style"""
-        return """
-            QLabel {
+        font_size = AppStyles.scale_font_size(19)  # Increased from 18
+        
+        return f"""
+            QLabel {{
                 color: white;
-                font-size: 18px;
+                font-size: {font_size}px;
                 font-weight: bold;
                 margin: 0;
-            }
+            }}
         """
     
     @staticmethod
     def get_compact_filter_group_style():
         """Compact filter group style with single row layout"""
-        return """
-            QGroupBox {
+        font_size = AppStyles.scale_font_size(15)  # Increased from 14
+        input_font_size = AppStyles.scale_font_size(13)  # Increased from 12
+        button_font_size = AppStyles.scale_font_size(12)  # Increased from 11
+        
+        return f"""
+            QGroupBox {{
                 font-weight: 600;
-                font-size: 14px;
+                font-size: {font_size}px;
                 color: #2c3e50;
                 border: 1px solid #3498db;
-                border-radius: 8px;
-                margin-top: 6px;
-                padding: 6px;
+                border-radius: 10px;
+                margin-top: 8px;
+                padding: 8px;
                 background: rgba(255, 255, 255, 0.95);
-                max-height: 80px;
-            }
-            QGroupBox::title {
+                max-height: 90px;
+            }}
+            QGroupBox::title {{
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                     stop:0 #3498db, stop:1 #2980b9);
                 color: white;
-                padding: 4px 12px;
+                padding: 6px 14px;
                 border-radius: 6px;
                 margin-left: 8px;
-            }
-            QDateEdit, QComboBox {
-                padding: 4px 8px;
+            }}
+            QDateEdit, QComboBox {{
+                padding: 6px 10px;
                 border: 1px solid #bdc3c7;
-                border-radius: 4px;
-                font-size: 12px;
+                border-radius: 6px;
+                font-size: {input_font_size}px;
                 background: white;
-                min-width: 80px;
-                max-height: 28px;
-            }
-            QDateEdit:focus, QComboBox:focus {
+                min-width: 90px;
+                min-height: 32px;
+                max-height: 32px;
+            }}
+            QDateEdit:focus, QComboBox:focus {{
                 border: 2px solid #3498db;
-            }
-            QPushButton {
+            }}
+            QPushButton {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 #3498db, stop:1 #2980b9);
                 color: white;
                 border: none;
-                border-radius: 4px;
-                padding: 6px 10px;
+                border-radius: 6px;
+                padding: 8px 12px;
                 font-weight: 600;
-                min-width: 60px;
-                max-height: 28px;
-                font-size: 11px;
-            }
-            QPushButton:hover {
+                min-width: 70px;
+                min-height: 32px;
+                max-height: 32px;
+                font-size: {button_font_size}px;
+            }}
+            QPushButton:hover {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 #4ea8eb, stop:1 #3990c9);
-            }
-            QLabel {
-                font-size: 11px;
+                transform: translateY(-1px);
+            }}
+            QLabel {{
+                font-size: {button_font_size}px;
                 font-weight: 500;
                 color: #2c3e50;
-                padding: 1px;
-            }
+                padding: 2px;
+            }}
         """
     
     @staticmethod
     def get_compact_quick_filter_button_style():
         """Compact quick filter button style"""
-        return """
-            QPushButton {
+        font_size = AppStyles.scale_font_size(11)  # Increased from 10
+        
+        return f"""
+            QPushButton {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 #95a5a6, stop:1 #7f8c8d);
-                min-width: 50px;
-                max-height: 28px;
-                font-size: 10px;
-                padding: 4px 8px;
-            }
-            QPushButton:hover {
+                min-width: 60px;
+                min-height: 32px;
+                max-height: 32px;
+                font-size: {font_size}px;
+                padding: 6px 10px;
+            }}
+            QPushButton:hover {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 #a5b5b6, stop:1 #8f9c8d);
-            }
+                transform: translateY(-1px);
+            }}
         """
     
     @staticmethod
@@ -1025,148 +1209,166 @@ class HistoryTabStyles:
             QFrame {
                 background: white;
                 border: 1px solid #e0e6ed;
-                border-radius: 6px;
-                padding: 8px;
+                border-radius: 8px;
+                padding: 10px;
                 margin: 2px;
-                max-height: 50px;
+                max-height: 60px;
             }
         """
     
     @staticmethod
     def get_compact_pagination_records_info_style():
         """Compact records info style"""
-        return """
-            QLabel {
+        font_size = AppStyles.scale_font_size(12)  # Increased from 11
+        
+        return f"""
+            QLabel {{
                 color: #6c757d;
-                font-size: 11px;
+                font-size: {font_size}px;
                 font-weight: 500;
-                padding: 2px;
-            }
+                padding: 3px;
+            }}
         """
     
     @staticmethod
     def get_compact_pagination_page_info_style():
         """Compact page info style"""
-        return """
-            QLabel {
+        font_size = AppStyles.scale_font_size(13)  # Increased from 12
+        
+        return f"""
+            QLabel {{
                 font-weight: 600;
                 color: #2c3e50;
-                padding: 0 12px;
-                font-size: 12px;
-                min-width: 80px;
+                padding: 0 14px;
+                font-size: {font_size}px;
+                min-width: 90px;
                 text-align: center;
-            }
+            }}
         """
     
     @staticmethod
     def get_compact_pagination_button_style():
         """Compact pagination button style with icons only"""
-        return """
-            QPushButton {
+        font_size = AppStyles.scale_font_size(15)  # Increased from 14
+        
+        return f"""
+            QPushButton {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 #f8f9fa, stop:1 #e9ecef);
                 border: 1px solid #dee2e6;
-                border-radius: 4px;
-                padding: 4px 8px;
-                font-size: 14px;
+                border-radius: 6px;
+                padding: 6px 10px;
+                font-size: {font_size}px;
                 font-weight: 500;
-                min-width: 30px;
-                max-height: 32px;
-            }
-            QPushButton:hover {
+                min-width: 36px;
+                min-height: 36px;
+                max-height: 36px;
+            }}
+            QPushButton:hover {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 #e9ecef, stop:1 #dee2e6);
                 border: 1px solid #adb5bd;
-            }
-            QPushButton:disabled {
+                transform: translateY(-1px);
+            }}
+            QPushButton:disabled {{
                 background: #f8f9fa;
                 color: #6c757d;
                 border: 1px solid #dee2e6;
-            }
+                transform: none;
+            }}
         """
     
     @staticmethod
     def get_compact_pagination_combo_style():
         """Compact pagination combo style"""
-        return """
-            QComboBox {
-                padding: 2px 6px;
+        font_size = AppStyles.scale_font_size(12)  # Increased from 11
+        
+        return f"""
+            QComboBox {{
+                padding: 3px 8px;
                 border: 1px solid #dee2e6;
-                border-radius: 3px;
-                font-size: 11px;
-                min-width: 40px;
-                max-height: 24px;
+                border-radius: 4px;
+                font-size: {font_size}px;
+                min-width: 50px;
+                min-height: 28px;
+                max-height: 28px;
                 background: white;
-            }
+            }}
         """
     
     @staticmethod
     def get_compact_pagination_label_style():
         """Compact pagination label style"""
-        return """
-            QLabel {
+        font_size = AppStyles.scale_font_size(12)  # Increased from 11
+        
+        return f"""
+            QLabel {{
                 color: #495057;
-                font-size: 11px;
+                font-size: {font_size}px;
                 font-weight: 500;
-                padding: 2px;
-            }
+                padding: 3px;
+            }}
         """
     
     @staticmethod
     def get_expanded_table_style():
         """Table style with more vertical space"""
-        return """
-            QTableWidget {
+        font_size = AppStyles.scale_font_size(14)  # Increased from 13
+        header_font_size = AppStyles.scale_font_size(13)  # Increased from 12
+        
+        return f"""
+            QTableWidget {{
                 border: 2px solid #bdc3c7;
                 border-radius: 12px;
                 background-color: white;
                 gridline-color: #ecf0f1;
-                font-size: 13px;
+                font-size: {font_size}px;
                 selection-background-color: #e8f4fd;
                 outline: none;
-                min-height: 500px;
-            }
-            QHeaderView::section {
+                min-height: 520px;
+            }}
+            QHeaderView::section {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 #34495e, stop:1 #2c3e50);
                 color: white;
                 border: 1px solid #2c3e50;
-                padding: 10px 8px;
+                padding: 12px 10px;
                 font-weight: bold;
-                font-size: 12px;
+                font-size: {header_font_size}px;
                 text-align: center;
-            }
-            QHeaderView::section:hover {
+                min-height: 24px;
+            }}
+            QHeaderView::section:hover {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 #3d566e, stop:1 #34495e);
-            }
-            QTableWidget::item {
-                padding: 8px 6px;
+            }}
+            QTableWidget::item {{
+                padding: 10px 8px;
                 border-bottom: 1px solid #ecf0f1;
                 border-right: 1px solid #f8f9fa;
                 word-wrap: break-word;
-            }
-            QTableWidget::item:selected {
+            }}
+            QTableWidget::item:selected {{
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                     stop:0 #e8f4fd, stop:1 #d4edda);
                 color: #2c3e50;
                 border: 1px solid #4a86e8;
-            }
-            QTableWidget::item:hover {
+            }}
+            QTableWidget::item:hover {{
                 background-color: #f8f9fa;
                 border: 1px solid #dee2e6;
-            }
-            QScrollBar:vertical {
+            }}
+            QScrollBar:vertical {{
                 background: #f8f9fa;
-                width: 12px;
-                border-radius: 6px;
-            }
-            QScrollBar::handle:vertical {
+                width: 14px;
+                border-radius: 7px;
+            }}
+            QScrollBar::handle:vertical {{
                 background: #dee2e6;
-                border-radius: 6px;
-                min-height: 20px;
-            }
-            QScrollBar::handle:vertical:hover {
+                border-radius: 7px;
+                min-height: 24px;
+            }}
+            QScrollBar::handle:vertical:hover {{
                 background: #adb5bd;
-            }
+            }}
         """

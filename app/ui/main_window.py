@@ -115,13 +115,13 @@ class MiniStatusCard(QFrame):
     """Compact status card widget"""
     def __init__(self, title, value, color="#4a86e8", parent=None):
         super().__init__(parent)
-        self.setFixedSize(100, 95) 
+        # self.setFixedSize(100, 95) 
         self.setStyleSheet(AppStyles.get_status_card_style())
         
         # Layout chính
         layout = QVBoxLayout(self)
         layout.setContentsMargins(6, 8, 6, 6)  # Tăng padding top từ 6 lên 8
-        layout.setSpacing(3)  # Tăng spacing từ 2 lên 3
+        layout.setSpacing(6)  
         
         # Title
         title_label = QLabel(title)
@@ -263,8 +263,8 @@ class DefectDetectionApp(QMainWindow):
     def setup_live_detection_tab(self):
         """Setup the enhanced UI for live detection tab"""
         main_layout = QVBoxLayout(self.live_detection_tab)
-        main_layout.setContentsMargins(24, 24, 24, 24)
-        main_layout.setSpacing(20)
+        main_layout.setContentsMargins(24, 4, 24, 4)
+        main_layout.setSpacing(2)
         
         # === Header Section ===
         header_frame = QFrame()
@@ -276,11 +276,7 @@ class DefectDetectionApp(QMainWindow):
         title_label = QLabel("Quality Control Station")
         title_label.setStyleSheet(AppStyles.get_header_title_style())
         
-        subtitle_label = QLabel("Real-time defect detection and analysis")
-        subtitle_label.setStyleSheet(AppStyles.get_header_subtitle_style())
-        
         title_layout.addWidget(title_label)
-        title_layout.addWidget(subtitle_label)
         header_layout.addLayout(title_layout)
         header_layout.addStretch()
         
@@ -290,7 +286,7 @@ class DefectDetectionApp(QMainWindow):
         stats_frame = QFrame()
         stats_layout = QHBoxLayout(stats_frame)
         stats_layout.setContentsMargins(0, 0, 0, 0)
-        stats_layout.setSpacing(8)
+        stats_layout.setSpacing(2)
         
         # Tạo cards mới với kích thước nhỏ
         self.total_defects_card = MiniStatusCard("Defects", "0", "#dc3545")
@@ -309,7 +305,7 @@ class DefectDetectionApp(QMainWindow):
         splitter = QSplitter(Qt.Horizontal)
         splitter.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         
-        # === Left side: Image area ===
+        # === Left side: Image area (chỉ có ảnh) ===
         self.image_container = QWidget()
         image_layout = QVBoxLayout(self.image_container)
         
@@ -332,13 +328,16 @@ class DefectDetectionApp(QMainWindow):
         
         image_group_layout.addWidget(self.image_frame)
         image_layout.addWidget(image_group)
+        
+        # Image info vẫn ở bên trái
         self.image_info = QLabel("📊 No image loaded")
         self.image_info.setStyleSheet(AppStyles.get_image_info_style())
         self.image_info.setAlignment(Qt.AlignCenter)
-        self.image_info.setFixedHeight(40)
-        image_layout.addWidget(self.image_info)  # Thêm vào image_layout, ngoài GroupBox
+        self.image_info.setMinimumHeight(20) 
+        self.image_info.setMaximumHeight(30)
+        image_layout.addWidget(self.image_info)
         
-        # === Right side: Enhanced Results area ===
+        # === Right side: Results area + Controls ===
         self.results_container = QWidget()
         results_layout = QVBoxLayout(self.results_container)
         
@@ -363,15 +362,7 @@ class DefectDetectionApp(QMainWindow):
         
         results_layout.addWidget(results_group)
         
-        # Add containers to splitter
-        splitter.addWidget(self.image_container)
-        splitter.addWidget(self.results_container)
-        splitter.setStretchFactor(0, 3)  # Image gets more space
-        splitter.setStretchFactor(1, 2)
-        
-        main_layout.addWidget(splitter)
-        
-        # === Enhanced Controls Section ===
+        # === DI CHUYỂN CONTROLS VÀO ĐÂY (bên phải, dưới results) ===
         controls_frame = QFrame()
         controls_frame.setStyleSheet(AppStyles.get_controls_frame_style())
         
@@ -383,29 +374,37 @@ class DefectDetectionApp(QMainWindow):
         shadow.setColor(QColor(0, 0, 0, 20))
         controls_frame.setGraphicsEffect(shadow)
         
-        controls_layout = QHBoxLayout(controls_frame)
+        controls_layout = QVBoxLayout(controls_frame)  # THAY ĐỔI THÀNH VBoxLayout
+        controls_layout.setSpacing(12)  # Spacing giữa 2 nút
+        controls_layout.setContentsMargins(16, 16, 16, 16)
         
-        # Enhanced buttons
+        # Enhanced buttons - xếp dọc
         self.btnCapture = AnimatedButton("📸 Capture & Analyze")
         self.btnCapture.setMinimumSize(200, 50)
         self.btnCapture.clicked.connect(self.on_capture)
         
         self.btnClear = AnimatedButton("🧹 Clear Results")
-        self.btnClear.setMinimumSize(150, 50)
+        self.btnClear.setMinimumSize(200, 50)  # Đồng nhất kích thước
         self.btnClear.setStyleSheet(AppStyles.get_clear_button_style())
         self.btnClear.clicked.connect(self.clear_results)
         
         controls_layout.addWidget(self.btnCapture)
         controls_layout.addWidget(self.btnClear)
-        controls_layout.addStretch()
+        controls_layout.addStretch()  # Đẩy buttons lên trên
         
-        main_layout.addWidget(controls_frame)
+        # THÊM CONTROLS VÀO RESULTS CONTAINER (bên phải)
+        results_layout.addWidget(controls_frame)
         
-        # BỎ PHẦN SCROLL AREA WRAPPER - sử dụng layout trực tiếp trên tab
-        # Không cần:
-        # tab_layout = QVBoxLayout(self.live_detection_tab)
-        # tab_layout.setContentsMargins(0, 0, 0, 0)
-        # tab_layout.addWidget(scroll)
+        # Add containers to splitter
+        splitter.addWidget(self.image_container)
+        splitter.addWidget(self.results_container)
+        splitter.setStretchFactor(0, 3)  # Image gets more space
+        splitter.setStretchFactor(1, 2)
+        
+        main_layout.addWidget(splitter)
+        
+        # BỎ CONTROLS FRAME CŨ Ở DƯỚI CÙNG
+        # Không cần đoạn code controls ở dưới main_layout nữa
 
     def update_status_bar(self):
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
