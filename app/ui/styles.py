@@ -617,7 +617,7 @@ class AppStyles:
                 border: none;
                 border-radius: 8px;
                 padding: 12px 20px;
-                font-size: 20px;
+                font-size: 25px;
                 font-weight: bold;
                 min-width: 120px;
                 min-height: 45px;
@@ -643,7 +643,7 @@ class AppStyles:
                 border: none;
                 border-radius: 8px;
                 padding: 12px 20px;
-                font-size: 20px;
+                font-size: 25px;
                 font-weight: bold;
                 min-width: 120px;
                 min-height: 45px;
@@ -1723,7 +1723,7 @@ class HistoryTabStyles:
                 border: none;
                 border-radius: 8px;
                 padding: 12px 20px;
-                font-size: 18px;
+                font-size: 25px;
                 font-weight: bold;
                 min-width: 120px;
                 min-height: 45px;
@@ -1749,7 +1749,7 @@ class HistoryTabStyles:
                 border: none;
                 border-radius: 8px;
                 padding: 12px 20px;
-                font-size: 18px;
+                font-size: 25px;
                 font-weight: bold;
                 min-width: 120px;
                 min-height: 45px;

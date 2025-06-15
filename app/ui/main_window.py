@@ -742,12 +742,12 @@ class DefectDetectionApp(QMainWindow):
             # NỘI DUNG DIALOG VỚI FONT LỚN
             msg_box.setText(f"""
             <h2 style='color: #e74c3c; font-size: 24px;'>Exit Defect Detection System</h2>
-            <p style='font-size: 20px; margin: 15px 0;'>
+            <p style='font-size: 25px; margin: 15px 0;'>
             Are you sure you want to <b>exit</b> the application?
             </p>
             <p style='font-size: 20px; background: #fff3cd; padding: 10px; border-left: 4px solid #ffc107;'>
             </p>
-            <p style='font-size: 18x; color: #666; margin-top: 15px;'>
+            <p style='font-size: 20x; color: #666; margin-top: 15px;'>
             All data has been automatically saved to the database.
             </p>
             """)

@@ -21,7 +21,7 @@ class ImageViewDialog(QDialog):
     """Enhanced dialog for viewing images in larger size"""
     def __init__(self, image_data, title, parent=None):
         super().__init__(parent)
-        self.setWindowTitle(f"🖼️ {title}")
+        self.setWindowTitle(f"{title}")
         
         # TĂNG KÍCH THƯỚC DIALOG LỚN HƠN
         self.setMinimumSize(1400, 900)
@@ -81,12 +81,12 @@ class ImageViewDialog(QDialog):
         button_layout.addStretch()
         
         # SAVE BUTTON LỚN HƠN
-        save_button = QPushButton("💾 Save Image")
+        save_button = QPushButton("Save Image")
         save_button.clicked.connect(lambda: self.save_image(pixmap))
         save_button.setStyleSheet(HistoryTabStyles.get_image_view_save_button_style())
         
         # CLOSE BUTTON LỚN HƠN
-        close_button = QPushButton("❌ Close")
+        close_button = QPushButton("Close")
         close_button.clicked.connect(self.accept)
         close_button.setStyleSheet(HistoryTabStyles.get_image_view_close_button_style())
         
@@ -610,15 +610,15 @@ class DetectionHistoryTab(QWidget):
         
         # NỘI DUNG VỚI FONT LỚN HƠN
         msg_box.setText(f"""
-        <h2 style='color: #e74c3c; font-size: 24px;'>🗑️ Delete Detection Record</h2>
-        <p style='font-size: 20px; margin: 15px 0;'>
+        <h2 style='color: #e74c3c; font-size: 24px;'>Delete Detection Record</h2>
+        <p style='font-size: 25px; margin: 15px 0;'>
         Are you sure you want to <b>permanently delete</b> this detection record?
         </p>
-        <p style='font-size: 18px; background: #f8f9fa; padding: 10px; border-left: 4px solid #dc3545;'>
+        <p style='font-size: 20px; background: #f8f9fa; padding: 10px; border-left: 4px solid #dc3545;'>
         <b>Detection #{serial_number}</b><br>
         Database ID: {database_id}
         </p>
-        <p style='font-size: 18px; color: #666; margin-top: 15px;'>
+        <p style='font-size: 20px; color: #666; margin-top: 15px;'>
         ⚠️ This action cannot be undone!
         </p>
         """)
@@ -628,8 +628,8 @@ class DetectionHistoryTab(QWidget):
         msg_box.resize(600, 350)
         
         # CUSTOM BUTTONS VỚI FONT LỚN HƠN
-        delete_btn = msg_box.addButton("🗑️ Delete", QMessageBox.YesRole)
-        cancel_btn = msg_box.addButton("❌ Cancel", QMessageBox.NoRole)
+        delete_btn = msg_box.addButton("Delete", QMessageBox.YesRole)
+        cancel_btn = msg_box.addButton("Cancel", QMessageBox.NoRole)
         
         # STYLE CHO BUTTONS
         delete_btn.setStyleSheet(HistoryTabStyles.get_delete_dialog_delete_button_style())
