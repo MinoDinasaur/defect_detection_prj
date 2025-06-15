@@ -282,35 +282,16 @@ class DefectDetectionApp(QMainWindow):
         
         main_layout.addWidget(header_frame)
         
-        # === Stats Cards Section ===
-        stats_frame = QFrame()
-        stats_layout = QHBoxLayout(stats_frame)
-        stats_layout.setContentsMargins(0, 0, 0, 0)
-        stats_layout.setSpacing(2)
-        
-        # Tạo cards mới với kích thước nhỏ
-        self.total_defects_card = MiniStatusCard("Defects", "0", "#dc3545")
-        self.defect_types_card = MiniStatusCard("Types", "0", "#fd7e14")
-        self.status_card = MiniStatusCard("Status", "Ready", "#28a745")
-        
-        # Thêm cards vào layout
-        stats_layout.addWidget(self.total_defects_card)
-        stats_layout.addWidget(self.defect_types_card)
-        stats_layout.addWidget(self.status_card)
-        stats_layout.addStretch()
-        
-        main_layout.addWidget(stats_frame)
-        
         # === Main Content Splitter ===
         splitter = QSplitter(Qt.Horizontal)
         splitter.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         
-        # === Left side: Image area (chỉ có ảnh) ===
+        # === Left side: Image area ONLY ===
         self.image_container = QWidget()
         image_layout = QVBoxLayout(self.image_container)
         
         # Enhanced image preview group
-        image_group = QGroupBox("Live Camera Feed")
+        image_group = QGroupBox("📷 Live Camera Feed")
         image_group.setStyleSheet(AppStyles.get_image_group_style())
         image_group_layout = QVBoxLayout(image_group)
         
@@ -320,7 +301,7 @@ class DefectDetectionApp(QMainWindow):
         self.image_frame.setStyleSheet(AppStyles.get_image_frame_style())
         image_frame_layout = QVBoxLayout(self.image_frame)
         
-        self.lblImage = QLabel("Captured image will appear here\n\nClick 'Capture Image' to start quality inspection")
+        self.lblImage = QLabel("🎯 Captured image will appear here\n\nClick 'Capture Image' to start quality inspection")
         self.lblImage.setAlignment(Qt.AlignCenter)
         self.lblImage.setMinimumSize(700, 500)
         self.lblImage.setStyleSheet(AppStyles.get_image_label_style())
@@ -329,20 +310,50 @@ class DefectDetectionApp(QMainWindow):
         image_group_layout.addWidget(self.image_frame)
         image_layout.addWidget(image_group)
         
-        # Image info vẫn ở bên trái
-        self.image_info = QLabel("No image loaded")
+        # Image info
+        self.image_info = QLabel("📊 No image loaded")
         self.image_info.setStyleSheet(AppStyles.get_image_info_style())
         self.image_info.setAlignment(Qt.AlignCenter)
         self.image_info.setMinimumHeight(20) 
         self.image_info.setMaximumHeight(30)
         image_layout.addWidget(self.image_info)
         
-        # === Right side: Results area + Controls ===
+        # === Right side: Status Cards + Results + Controls ===
         self.results_container = QWidget()
         results_layout = QVBoxLayout(self.results_container)
+        results_layout.setSpacing(12)  # Space between sections
         
-        # Enhanced results group
-        results_group = QGroupBox("Results")
+        # === MOVE STATS CARDS HERE (top of right side) ===
+        stats_frame = QFrame()
+        stats_frame.setStyleSheet("""
+            QFrame {
+                background: rgba(255, 255, 255, 0.9);
+                border: 1px solid #e0e6ed;
+                border-radius: 12px;
+                padding: 8px;
+                margin: 4px 0;
+            }
+        """)
+        stats_layout = QHBoxLayout(stats_frame)
+        stats_layout.setContentsMargins(8, 8, 8, 8)
+        stats_layout.setSpacing(8)
+        
+        # Create cards with adjusted size for right panel
+        self.total_defects_card = MiniStatusCard("Defects", "0", "#dc3545")
+        self.defect_types_card = MiniStatusCard("Types", "0", "#fd7e14")
+        self.status_card = MiniStatusCard("Status", "Ready", "#28a745")
+        
+        # Add cards to stats layout
+        stats_layout.addWidget(self.total_defects_card)
+        stats_layout.addWidget(self.defect_types_card)
+        stats_layout.addWidget(self.status_card)
+        stats_layout.addStretch()  # Push cards to left
+        
+        # Add stats frame to results container (top)
+        results_layout.addWidget(stats_frame)
+        
+        # === Results Section ===
+        results_group = QGroupBox("🔍 Analysis Results")
         results_group.setStyleSheet(AppStyles.get_results_group_style())
         results_group_layout = QVBoxLayout(results_group)
         
@@ -352,7 +363,7 @@ class DefectDetectionApp(QMainWindow):
         results_group_layout.addWidget(self.lstResult)
         
         # Enhanced result indicator
-        self.result_indicator = QLabel("Waiting for analysis...")
+        self.result_indicator = QLabel("⏳ Waiting for analysis...")
         self.result_indicator.setAlignment(Qt.AlignCenter)
         self.result_indicator.setWordWrap(True)
         self.result_indicator.setMinimumHeight(80)
@@ -362,7 +373,7 @@ class DefectDetectionApp(QMainWindow):
         
         results_layout.addWidget(results_group)
         
-        # === DI CHUYỂN CONTROLS VÀO ĐÂY (bên phải, dưới results) ===
+        # === Controls Section (bottom of right side) ===
         controls_frame = QFrame()
         controls_frame.setStyleSheet(AppStyles.get_controls_frame_style())
         
@@ -374,32 +385,34 @@ class DefectDetectionApp(QMainWindow):
         shadow.setColor(QColor(0, 0, 0, 20))
         controls_frame.setGraphicsEffect(shadow)
         
-        controls_layout = QVBoxLayout(controls_frame)  # THAY ĐỔI THÀNH VBoxLayout
-        controls_layout.setSpacing(12)  # Spacing giữa 2 nút
+        controls_layout = QVBoxLayout(controls_frame)
+        controls_layout.setSpacing(12)
         controls_layout.setContentsMargins(16, 16, 16, 16)
         
-        # Enhanced buttons - xếp dọc
-        self.btnCapture = AnimatedButton("Capture & Analyze")
+        # Enhanced buttons
+        self.btnCapture = AnimatedButton("📸 Capture & Analyze")
         self.btnCapture.setMinimumSize(200, 50)
         self.btnCapture.clicked.connect(self.on_capture)
         
-        self.btnClear = AnimatedButton("Clear Results")
-        self.btnClear.setMinimumSize(200, 50)  # Đồng nhất kích thước
+        self.btnClear = AnimatedButton("🧹 Clear Results")
+        self.btnClear.setMinimumSize(200, 50)
         self.btnClear.setStyleSheet(AppStyles.get_clear_button_style())
         self.btnClear.clicked.connect(self.clear_results)
         
         controls_layout.addWidget(self.btnCapture)
         controls_layout.addWidget(self.btnClear)
-        controls_layout.addStretch()  # Đẩy buttons lên trên
+        controls_layout.addStretch()  # Push buttons to top
         
-        # THÊM CONTROLS VÀO RESULTS CONTAINER (bên phải)
+        # Add controls to results container (bottom)
         results_layout.addWidget(controls_frame)
         
-        # Add containers to splitter
+        # === Add containers to splitter ===
         splitter.addWidget(self.image_container)
         splitter.addWidget(self.results_container)
-        splitter.setStretchFactor(0, 3)  # Image gets more space
-        splitter.setStretchFactor(1, 2)
+        
+        # Adjust splitter ratios - left side (image) gets more space
+        splitter.setStretchFactor(0, 3)  # Image area
+        splitter.setStretchFactor(1, 2)  # Results + Status + Controls area
         
         main_layout.addWidget(splitter)
         
