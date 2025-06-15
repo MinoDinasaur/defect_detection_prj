@@ -1146,19 +1146,6 @@ class HistoryTabStyles:
         """
     
     @staticmethod
-    def get_pagination_label_style():
-        font_size = AppStyles.scale_font_size(20)  # Increased from 12
-        
-        return f"""
-            QLabel {{
-                color: #495057;
-                font-size: {font_size}px;
-                font-weight: 500;
-                padding: 3px 6px;
-            }}
-        """
-    
-    @staticmethod
     def get_compact_header_frame_style():
         """Compact header style for history tab"""
         return """
@@ -1350,37 +1337,16 @@ class HistoryTabStyles:
         """
     
     @staticmethod
-    def get_compact_pagination_combo_style():
-        """Compact pagination combo style"""
-        font_size = AppStyles.scale_font_size(20)  # Increased from 11
-        
-        return f"""
-            QComboBox {{
-                padding: 3px 8px;
-                border: 1px solid #dee2e6;
-                border-radius: 4px;
-                font-size: {font_size}px;
-                min-width: 50px;
-                min-height: 28px;
-                max-height: 28px;
-                background: white;
-            }}
-        """
+    # BỎ CÁC STYLES KHÔNG DÙNG NẰNG NỮA CHO PAGE SIZE SELECTOR
+    # def get_compact_pagination_combo_style():
+    #     """Compact pagination combo style"""
+    #     ...
     
-    @staticmethod
-    def get_compact_pagination_label_style():
-        """Compact pagination label style"""
-        font_size = AppStyles.scale_font_size(20)  # Increased from 11
-        
-        return f"""
-            QLabel {{
-                color: #495057;
-                font-size: {font_size}px;
-                font-weight: 500;
-                padding: 3px;
-            }}
-        """
-    
+    # @staticmethod
+    # def get_compact_pagination_label_style():
+    #     """Compact pagination label style"""
+    #     ...
+
     @staticmethod
     def get_expanded_table_style():
         """Table style with more vertical space"""

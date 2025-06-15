@@ -130,7 +130,7 @@ class DetectionHistoryTab(QWidget):
         
         # Pagination variables
         self.current_page = 1
-        self.page_size = 7 
+        self.page_size = 7  # CỐ ĐỊNH LÀ 7 - KHÔNG THAY ĐỔI ĐƯỢC
         self.total_records = 0
         self.total_pages = 0
         
@@ -242,7 +242,7 @@ class DetectionHistoryTab(QWidget):
         self.history_table.setColumnWidth(3, 230)
         
         header.setSectionResizeMode(4, QHeaderView.Fixed)
-        self.history_table.setColumnWidth(4, 690)
+        self.history_table.setColumnWidth(4, 660)
         
         header.setSectionResizeMode(5, QHeaderView.Stretch)
         
@@ -301,21 +301,21 @@ class DetectionHistoryTab(QWidget):
         pagination_layout.addLayout(nav_layout)
         pagination_layout.addStretch()
         
-        # Page size selector - compact
-        page_size_layout = QHBoxLayout()
-        
-        show_label = QLabel("Show:")
-        show_label.setStyleSheet(HistoryTabStyles.get_compact_pagination_label_style())
-        page_size_layout.addWidget(show_label)
-        
-        self.page_size_combo = QComboBox()
-        self.page_size_combo.addItems(["5", "7"])
-        self.page_size_combo.setCurrentText("7")
-        self.page_size_combo.currentTextChanged.connect(self.on_page_size_changed)
-        self.page_size_combo.setStyleSheet(HistoryTabStyles.get_compact_pagination_combo_style())
-        page_size_layout.addWidget(self.page_size_combo)
-        
-        pagination_layout.addLayout(page_size_layout)
+        # BỎ PAGE SIZE SELECTOR - KHÔNG CẦN NỮA
+        # page_size_layout = QHBoxLayout()
+        # 
+        # show_label = QLabel("Show:")
+        # show_label.setStyleSheet(HistoryTabStyles.get_compact_pagination_label_style())
+        # page_size_layout.addWidget(show_label)
+        # 
+        # self.page_size_combo = QComboBox()
+        # self.page_size_combo.addItems(["5", "7"])
+        # self.page_size_combo.setCurrentText("7")
+        # self.page_size_combo.currentTextChanged.connect(self.on_page_size_changed)
+        # self.page_size_combo.setStyleSheet(HistoryTabStyles.get_compact_pagination_combo_style())
+        # page_size_layout.addWidget(self.page_size_combo)
+        # 
+        # pagination_layout.addLayout(page_size_layout)
         
         left_layout.addWidget(pagination_frame)
         
@@ -524,10 +524,10 @@ class DetectionHistoryTab(QWidget):
         # Update page info
         self.page_info_label.setText(f"Page {self.current_page} of {self.total_pages}")
         
-        # Update records info
+        # Update records info với thông tin page size cố định
         start_record = (self.current_page - 1) * self.page_size + 1 if self.total_records > 0 else 0
         end_record = min(self.current_page * self.page_size, self.total_records)
-        self.records_info_label.setText(f"Showing {start_record}-{end_record} of {self.total_records} records")
+        self.records_info_label.setText(f"Showing {start_record}-{end_record} of {self.total_records} records (7 per page)")
         
         # Update button states
         self.first_page_btn.setEnabled(self.current_page > 1)
@@ -559,13 +559,6 @@ class DetectionHistoryTab(QWidget):
         if self.current_page != self.total_pages:
             self.current_page = self.total_pages
             self.refresh_data()
-    
-    @Slot(str)
-    def on_page_size_changed(self, new_size):
-        """Handle page size change"""
-        self.page_size = int(new_size)
-        self.current_page = 1  # Reset to first page
-        self.refresh_data()
     
     def set_date_range(self, days_back):
         """Set date range for quick filters"""
@@ -620,9 +613,9 @@ class DetectionHistoryTab(QWidget):
     
     def reset_details(self):
         """Reset detail view when no row is selected"""
-        self.details_defect.setText("🔧 None selected")
-        self.details_time.setText("⏰ None selected")
-        self.details_barcode.setText("📦 None selected")
+        self.details_defect.setText("None selected")
+        self.details_time.setText("None selected")
+        self.details_barcode.setText("None selected")
         
         defect_styles = HistoryTabStyles.get_defect_status_styles()
         for label in [self.details_defect, self.details_time, self.details_barcode]:
@@ -729,7 +722,7 @@ class DetectionHistoryTab(QWidget):
             
             # Cập nhật status
             if hasattr(self.parent, 'status_message'):
-                self.parent.status_message.setText(f"📤 Detection #{serial_number} exported to {export_dir}")
+                self.parent.status_message.setText(f"Detection #{serial_number} exported to {export_dir}")
             
         except Exception as e:
             QMessageBox.warning(self, "Export Error", f"Error exporting detection: {str(e)}")
@@ -858,9 +851,9 @@ class DetectionHistoryTab(QWidget):
             # Cập nhật pagination info
             if hasattr(self, 'records_info_label'):
                 current_count = self.history_table.rowCount()
-                self.records_info_label.setText(f"📊 Total: {current_count} records")
+                self.records_info_label.setText(f"Total: {current_count} records")
             
-            print(f"✅ Record {row_id} added to history table")
+            print(f"Record {row_id} added to history table")
             
         except Exception as e:
             print(f"Error adding new record: {e}")
