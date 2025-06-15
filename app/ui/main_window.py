@@ -231,7 +231,7 @@ class DefectDetectionApp(QMainWindow):
         
         # Version info
         version_label = QLabel("Đại học Bách Khoa Hà Nội - 2025")
-        version_label.setStyleSheet("color: #6c757d; font-size: 12px; padding: 4px 8px;")
+        version_label.setStyleSheet("color: #6c757d; font-size: 19px; padding: 4px 8px;")
         self.statusBar.addPermanentWidget(version_label)
 
     def init_barcode_scanner(self):
@@ -330,7 +330,7 @@ class DefectDetectionApp(QMainWindow):
         image_layout.addWidget(image_group)
         
         # Image info vẫn ở bên trái
-        self.image_info = QLabel("📊 No image loaded")
+        self.image_info = QLabel("No image loaded")
         self.image_info.setStyleSheet(AppStyles.get_image_info_style())
         self.image_info.setAlignment(Qt.AlignCenter)
         self.image_info.setMinimumHeight(20) 
@@ -355,7 +355,7 @@ class DefectDetectionApp(QMainWindow):
         self.result_indicator = QLabel("Waiting for analysis...")
         self.result_indicator.setAlignment(Qt.AlignCenter)
         self.result_indicator.setWordWrap(True)
-        self.result_indicator.setMinimumHeight(60)
+        self.result_indicator.setMinimumHeight(80)
         self.result_indicator.setMaximumHeight(120)
         self.result_indicator.setStyleSheet(AppStyles.get_result_indicator_styles()['waiting'])
         results_group_layout.addWidget(self.result_indicator)

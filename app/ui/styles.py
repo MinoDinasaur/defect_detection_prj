@@ -86,7 +86,7 @@ class AppStyles:
                 padding: 8px 16px;
                 margin-right: 1px;
                 font-weight: 500;
-                font-size: 14px;
+                font-size: 20px;
                 color: #495057;
                 min-width: 100px;
                 max-width: 180px;
@@ -193,7 +193,7 @@ class AppStyles:
                     stop:0 #ffffff, stop:1 #f8f9fa);
                 border-top: 1px solid #dee2e6;
                 padding: 10px;
-                font-size: 14px;
+                font-size: 19px;
                 color: #495057;
                 min-height: 24px;
             }
@@ -456,8 +456,8 @@ class AppStyles:
     
     @staticmethod
     def get_result_indicator_styles():
-        font_size_normal = AppStyles.scale_font_size(20)  # Increased from 14
-        font_size_large = AppStyles.scale_font_size(22)   # Increased from 18
+        font_size_normal = AppStyles.scale_font_size(23)  # Increased from 14
+        font_size_large = AppStyles.scale_font_size(25)   # Increased from 18
         
         return {
             'waiting': f"""
@@ -465,13 +465,13 @@ class AppStyles:
                     font-size: {font_size_normal}px;
                     font-weight: bold;
                     border-radius: 12px;
-                    padding: 18px;
+                    padding: 10px;
                     background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                         stop:0 #f8f9fa, stop:1 #e9ecef);
                     border: 2px solid #dee2e6;
                     color: #6c757d;
                     max-height: 140px;
-                    min-height: 20px;
+                    min-height: 10px;
                     qproperty-alignment: AlignCenter;
                 }}
             """,
@@ -482,11 +482,11 @@ class AppStyles:
                     color: #856404;
                     border: 3px solid #ffc107;
                     border-radius: 12px;
-                    padding: 18px;
+                    padding: 10px;
                     font-size: {font_size_normal}px;
                     font-weight: bold;
                     max-height: 140px;
-                    min-height: 20px;
+                    min-height: 10px;
                     qproperty-alignment: AlignCenter;
                 }}
             """,
@@ -497,7 +497,7 @@ class AppStyles:
                     color: #2e7d32;
                     border: 3px solid #66bb6a;
                     border-radius: 12px;
-                    padding: 18px;
+                    padding: 10px;
                     font-size: {font_size_large}px;
                     font-weight: bold;
                     min-height: 20px;
@@ -511,10 +511,10 @@ class AppStyles:
                     color: #c62828;
                     border: 3px solid #ef5350;
                     border-radius: 12px;
-                    padding: 18px;
+                    padding: 10px;
                     font-size: {font_size_large}px;
                     font-weight: bold;
-                    min-height: 20px;
+                    min-height: 10px;
                     qproperty-alignment: AlignCenter;
                 }}
             """,
@@ -525,11 +525,11 @@ class AppStyles:
                     color: #e65100;
                     border: 3px solid #ff9800;
                     border-radius: 12px;
-                    padding: 18px;
+                    padding: 10px;
                     font-size: {font_size_normal}px;
                     font-weight: bold;
                     max-height: 140px;
-                    min-height: 20px;
+                    min-height: 10px;
                     qproperty-alignment: AlignCenter;
                 }}
             """

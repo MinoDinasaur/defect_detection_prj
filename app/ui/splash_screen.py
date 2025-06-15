@@ -16,8 +16,6 @@ class SplashScreen(QSplashScreen):
         
     def setup_ui(self):
         """Setup splash screen UI"""
-        # Không tạo layout phức tạp - sử dụng paintEvent thay thế
-        
         # Load app icon
         self.icon_path = os.path.join(os.path.dirname(__file__), '..', 'resources', 'app_icon.png')
         
