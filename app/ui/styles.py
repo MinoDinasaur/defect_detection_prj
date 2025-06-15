@@ -600,7 +600,7 @@ class HistoryTabStyles:
     
     @staticmethod
     def get_dialog_save_button_style():
-        font_size = AppStyles.scale_font_size(19)  # Increased from 14
+        font_size = AppStyles.scale_font_size(20)  # Increased from 14
         
         return f"""
             QPushButton {{
@@ -624,7 +624,7 @@ class HistoryTabStyles:
     
     @staticmethod
     def get_dialog_close_button_style():
-        font_size = AppStyles.scale_font_size(19)  # Increased from 14
+        font_size = AppStyles.scale_font_size(20)  # Increased from 14
         
         return f"""
             QPushButton {{

@@ -130,7 +130,7 @@ class DetectionHistoryTab(QWidget):
         
         # Pagination variables
         self.current_page = 1
-        self.page_size = 10  # 10 records per page
+        self.page_size = 7 
         self.total_records = 0
         self.total_pages = 0
         
@@ -230,7 +230,7 @@ class DetectionHistoryTab(QWidget):
         
         # Column widths như cũ
         header.setSectionResizeMode(0, QHeaderView.Fixed)
-        self.history_table.setColumnWidth(0, 40)
+        self.history_table.setColumnWidth(0, 60)
         
         header.setSectionResizeMode(1, QHeaderView.Fixed)
         self.history_table.setColumnWidth(1, 120)
@@ -309,8 +309,8 @@ class DetectionHistoryTab(QWidget):
         page_size_layout.addWidget(show_label)
         
         self.page_size_combo = QComboBox()
-        self.page_size_combo.addItems(["5", "10", "20", "50"])
-        self.page_size_combo.setCurrentText("10")
+        self.page_size_combo.addItems(["5", "7"])
+        self.page_size_combo.setCurrentText("7")
         self.page_size_combo.currentTextChanged.connect(self.on_page_size_changed)
         self.page_size_combo.setStyleSheet(HistoryTabStyles.get_compact_pagination_combo_style())
         page_size_layout.addWidget(self.page_size_combo)
