@@ -527,13 +527,13 @@ class DefectDetectionApp(QMainWindow):
             # Uncomment một trong những dòng dưới để test:
             
             # 1. Test với file cụ thể:
-            row_id = camera.capture_image_from_file()
+            # row_id = camera.capture_image_from_file()
             
             # 2. Test với file có tên cụ thể trong storage:
             # row_id = camera.capture_test_image("defect_sample.jpg")
             
             # 3. Dùng camera thật (dòng gốc):
-            # row_id = camera.capture_image()
+            row_id = camera.capture_image()
             
             if row_id is None:
                 raise Exception("Failed to capture image.")    
