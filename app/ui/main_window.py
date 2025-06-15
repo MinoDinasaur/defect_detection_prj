@@ -305,7 +305,7 @@ class DefectDetectionApp(QMainWindow):
         self.image_frame.setStyleSheet(AppStyles.get_image_frame_style())
         image_frame_layout = QVBoxLayout(self.image_frame)
         
-        self.lblImage = QLabel("▢ Captured image will appear here\n\nClick 'Capture Image' to start quality inspection")
+        self.lblImage = QLabel("Captured image will appear here\n\nClick 'Capture Image' to start quality inspection")
         self.lblImage.setAlignment(Qt.AlignCenter)
         self.lblImage.setMinimumSize(700, 500)
         self.lblImage.setStyleSheet(AppStyles.get_image_label_style())
@@ -315,7 +315,7 @@ class DefectDetectionApp(QMainWindow):
         image_layout.addWidget(image_group)
         
         # Image info
-        self.image_info = QLabel("≡ No image loaded")
+        self.image_info = QLabel("No image loaded")
         self.image_info.setStyleSheet(AppStyles.get_image_info_style())
         self.image_info.setAlignment(Qt.AlignCenter)
         self.image_info.setMinimumHeight(20) 
