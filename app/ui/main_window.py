@@ -295,7 +295,7 @@ class DefectDetectionApp(QMainWindow):
         image_layout = QVBoxLayout(self.image_container)
         
         # Enhanced image preview group
-        image_group = QGroupBox("📷 Live Camera Feed")
+        image_group = QGroupBox("▣ Live Camera Feed")
         image_group.setStyleSheet(AppStyles.get_image_group_style())
         image_group_layout = QVBoxLayout(image_group)
         
@@ -305,7 +305,7 @@ class DefectDetectionApp(QMainWindow):
         self.image_frame.setStyleSheet(AppStyles.get_image_frame_style())
         image_frame_layout = QVBoxLayout(self.image_frame)
         
-        self.lblImage = QLabel("🎯 Captured image will appear here\n\nClick 'Capture Image' to start quality inspection")
+        self.lblImage = QLabel("▢ Captured image will appear here\n\nClick 'Capture Image' to start quality inspection")
         self.lblImage.setAlignment(Qt.AlignCenter)
         self.lblImage.setMinimumSize(700, 500)
         self.lblImage.setStyleSheet(AppStyles.get_image_label_style())
@@ -315,7 +315,7 @@ class DefectDetectionApp(QMainWindow):
         image_layout.addWidget(image_group)
         
         # Image info
-        self.image_info = QLabel("📊 No image loaded")
+        self.image_info = QLabel("≡ No image loaded")
         self.image_info.setStyleSheet(AppStyles.get_image_info_style())
         self.image_info.setAlignment(Qt.AlignCenter)
         self.image_info.setMinimumHeight(20) 
@@ -354,7 +354,7 @@ class DefectDetectionApp(QMainWindow):
         results_layout.addWidget(stats_frame)
         
         # === Results Section ===
-        results_group = QGroupBox("🔍 Analysis Results")
+        results_group = QGroupBox("▦ Analysis Results")
         results_group.setStyleSheet(AppStyles.get_results_group_style())
         results_group_layout = QVBoxLayout(results_group)
         
@@ -364,7 +364,7 @@ class DefectDetectionApp(QMainWindow):
         results_group_layout.addWidget(self.lstResult)
         
         # Enhanced result indicator
-        self.result_indicator = QLabel("⏳ Waiting for analysis...")
+        self.result_indicator = QLabel("○ Waiting for analysis...")
         self.result_indicator.setAlignment(Qt.AlignCenter)
         self.result_indicator.setWordWrap(True)
         self.result_indicator.setMinimumHeight(80)
@@ -391,11 +391,11 @@ class DefectDetectionApp(QMainWindow):
         controls_layout.setContentsMargins(16, 16, 16, 16)
         
         # Enhanced buttons
-        self.btnCapture = AnimatedButton("📸 Capture & Analyze")
+        self.btnCapture = AnimatedButton("▶ Capture & Analyze")
         self.btnCapture.setMinimumSize(200, 50)
         self.btnCapture.clicked.connect(self.on_capture)
         
-        self.btnClear = AnimatedButton("🧹 Clear Results")
+        self.btnClear = AnimatedButton("⌫ Clear Results")
         self.btnClear.setMinimumSize(200, 50)
         self.btnClear.setStyleSheet(AppStyles.get_clear_button_style())
         self.btnClear.clicked.connect(self.clear_results)
@@ -511,7 +511,7 @@ class DefectDetectionApp(QMainWindow):
     def on_capture(self):
         """Enhanced capture with progress indication"""
         try:
-            self.status_message.setText("📸 Capturing image...")
+            self.status_message.setText("Capturing image...")
             self.progress_bar.setVisible(True)
             self.progress_bar.setValue(0)
             self.set_processing_state(True)
@@ -607,7 +607,7 @@ class DefectDetectionApp(QMainWindow):
                 self.status_card.update_value("FAILED", "#e74c3c")
                 
                 # Enhanced defect list
-                header_item = QListWidgetItem("ALERT: Defects Detected")
+                header_item = QListWidgetItem("⚠ ALERT: Defects Detected")
                 header_item.setFont(QFont("Segoe UI", 16, QFont.Bold))
                 header_item.setBackground(QColor(255, 240, 240))
                 self.lstResult.addItem(header_item)
@@ -617,7 +617,7 @@ class DefectDetectionApp(QMainWindow):
                     confidence = confidences[i] * 100
                     
                     # CHỈ HIỂN THỊ TÊN DEFECT, KHÔNG CÓ CONFIDENCE
-                    item_text = f"Defect #{idx+1}: {defect_name}"
+                    item_text = f"● Defect #{idx+1}: {defect_name}"
                     item = QListWidgetItem(item_text)
                     item.setFont(QFont("Segoe UI", 13))
                     
@@ -632,7 +632,7 @@ class DefectDetectionApp(QMainWindow):
                     self.lstResult.addItem(item)
                 
                 # Enhanced fail indicator
-                self.result_indicator.setText(f"QUALITY FAILED\n{defect_count} defects detected")
+                self.result_indicator.setText(f"✗ QUALITY FAILED\n{defect_count} defects detected")
                 self.result_indicator.setStyleSheet(AppStyles.get_result_indicator_styles()['failed'])
                 
             else:
@@ -642,13 +642,13 @@ class DefectDetectionApp(QMainWindow):
                 self.status_card.update_value("PASSED", "#27ae60")
                 
                 # Enhanced pass message
-                success_item = QListWidgetItem("✅ QUALITY PASSED\n\nProduct meets all quality standards\nNo defects detected in inspection")
+                success_item = QListWidgetItem("✓ QUALITY PASSED\n\nProduct meets all quality standards\nNo defects detected in inspection")
                 success_item.setFont(QFont("Segoe UI", 16))
                 success_item.setBackground(QColor(232, 245, 233))
                 self.lstResult.addItem(success_item)
                 
                 # Enhanced pass indicator
-                self.result_indicator.setText("✅ QUALITY PASSED\nNo defects detected")
+                self.result_indicator.setText("✓ QUALITY PASSED\nNo defects detected")
                 self.result_indicator.setStyleSheet(AppStyles.get_result_indicator_styles()['passed'])
             
             self.set_processing_state(False)
@@ -676,7 +676,7 @@ class DefectDetectionApp(QMainWindow):
         self.result_indicator.setMaximumHeight(120)
         self.result_indicator.setStyleSheet(AppStyles.get_result_indicator_styles()['waiting'])
         
-        self.status_message.setText("🧹 Results cleared")
+        self.status_message.setText("Results cleared")
 
     def set_processing_state(self, is_processing):
         """Enhanced processing state with visual feedback"""
@@ -700,13 +700,13 @@ class DefectDetectionApp(QMainWindow):
 
     def show_error(self, message):
         """Enhanced error display with proper text wrapping"""
-        self.status_message.setText(f"❌ Error: {message}")
+        self.status_message.setText(f"Error: {message}")
         
         # Update status card
         self.status_card.update_value("Error", "#e74c3c")
         
         # Enhanced error indicator with word wrap and size constraints
-        self.result_indicator.setText(f"⚠️ ERROR\n{message}")
+        self.result_indicator.setText(f"ERROR\n{message}")
         self.result_indicator.setWordWrap(True)
         self.result_indicator.setMaximumHeight(120)
         self.result_indicator.setStyleSheet(AppStyles.get_result_indicator_styles()['error'])
@@ -732,7 +732,7 @@ class DefectDetectionApp(QMainWindow):
     def closeEvent(self, event):
         try:
             if hasattr(self, 'barcode_thread') and self.barcode_thread.isRunning():
-                print("🔍 Stopping barcode scanner...")
+                print("Stopping barcode scanner...")
                 
                 # Request thread to stop gracefully
                 self.barcode_thread.requestInterruption()

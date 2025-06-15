@@ -21,7 +21,7 @@ class ImageViewDialog(QDialog):
     """Enhanced dialog for viewing images in larger size"""
     def __init__(self, image_data, title, parent=None):
         super().__init__(parent)
-        self.setWindowTitle(f"🖼️ {title}")
+        self.setWindowTitle(f"{title}")
         self.setMinimumSize(800, 600)
         self.setStyleSheet(HistoryTabStyles.get_dialog_style())
         
@@ -35,7 +35,7 @@ class ImageViewDialog(QDialog):
         title_frame.setStyleSheet(HistoryTabStyles.get_dialog_title_frame_style())
         title_layout = QHBoxLayout(title_frame)
         
-        title_label = QLabel(f"📸 {title}")
+        title_label = QLabel(f"{title}")
         title_label.setStyleSheet(HistoryTabStyles.get_dialog_title_style())
         title_layout.addWidget(title_label)
         title_layout.addStretch()
@@ -273,19 +273,19 @@ class DetectionHistoryTab(QWidget):
         nav_layout = QHBoxLayout()
         nav_layout.setSpacing(4)  # Giảm spacing
         
-        self.first_page_btn = QPushButton("⬅️⬅️")  # Chỉ icon
+        self.first_page_btn = QPushButton("◄◄")  
         self.first_page_btn.clicked.connect(self.go_to_first_page)
         
-        self.prev_page_btn = QPushButton("⬅️")  # Chỉ icon
+        self.prev_page_btn = QPushButton("◄")  
         self.prev_page_btn.clicked.connect(self.go_to_previous_page)
         
         self.page_info_label = QLabel("Page 1 of 1")
         self.page_info_label.setStyleSheet(HistoryTabStyles.get_compact_pagination_page_info_style())
         
-        self.next_page_btn = QPushButton("➡️")  # Chỉ icon
+        self.next_page_btn = QPushButton("►")  
         self.next_page_btn.clicked.connect(self.go_to_next_page)
         
-        self.last_page_btn = QPushButton("➡️➡️")  # Chỉ icon
+        self.last_page_btn = QPushButton("►►")  
         self.last_page_btn.clicked.connect(self.go_to_last_page)
         
         # Apply compact pagination button style
