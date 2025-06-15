@@ -30,6 +30,62 @@ class AppStyles:
         }
     
     @staticmethod
+    def get_close_button_style():
+        """Style for LARGE close button"""
+        return """
+            QPushButton {
+                background: #e74c3c;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                font-size: 20px;
+                font-weight: bold;
+                min-width: 25px;
+                max-width: 25px;
+                min-height: 25px;
+                max-height: 25px;
+                margin: 5px 5px;
+            }
+            QPushButton:hover {
+                background: #c0392b;
+                transform: scale(1.15);
+                box-shadow: 0 4px 8px rgba(231, 76, 60, 0.3);
+            }
+            QPushButton:pressed {
+                transform: scale(0.9);
+                background: #a93226;
+            }
+    
+        """
+    @staticmethod
+    def get_title_button_style():
+        """Style for minimize/maximize buttons - cùng kích thước với close button"""
+        return f"""
+            QPushButton {{
+                background: #95a5a6;  /* Màu xám thống nhất */
+                color: white;
+                border: none;
+                border-radius: 6px;  /* Giống close button */
+                font-size: 20px;     /* Giống close button */
+                font-weight: bold;
+                min-width: 25px;     /* Giống close button */
+                max-width: 25px;
+                min-height: 25px;    /* Giống close button */
+                max-height: 25px;
+                margin: 3px 1px;     /* Giống close button */
+            }}
+            QPushButton:hover {{
+                background: #7f8c8d;  /* Màu xám đậm hơn khi hover */
+                transform: scale(1.15);  /* Giống close button */
+                box-shadow: 0 4px 8px rgba(127, 140, 141, 0.3);
+            }}
+            QPushButton:pressed {{
+                transform: scale(0.9);   /* Giống close button */
+                background: #6c757d;     /* Màu xám đậm nhất khi pressed */
+            }}
+        """
+    
+    @staticmethod
     def scale_size(base_size):
         """Scale size based on screen"""
         info = AppStyles.get_screen_info()
