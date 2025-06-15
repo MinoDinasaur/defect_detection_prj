@@ -612,6 +612,7 @@ class DefectDetectionApp(QMainWindow):
                 header_item = QListWidgetItem("⚠ ALERT: Defects Detected")
                 header_item.setFont(QFont("Segoe UI", 16, QFont.Bold))
                 header_item.setBackground(QColor(255, 240, 240))
+                header_item.setForeground(QColor(220, 53, 69))  # Màu đỏ cho text
                 self.lstResult.addItem(header_item)
                 
                 for idx, (i, cls_id) in enumerate(defect_indices):
@@ -643,10 +644,11 @@ class DefectDetectionApp(QMainWindow):
                 self.defect_types_card.update_value("0", "#27ae60") 
                 self.status_card.update_value("PASSED", "#27ae60")
                 
-                # Enhanced pass message
+                # Enhanced pass message VỚI MÀU XANH LÁ CÂY
                 success_item = QListWidgetItem("✓ QUALITY PASSED\n\nProduct meets all quality standards\nNo defects detected in inspection")
                 success_item.setFont(QFont("Segoe UI", 16))
-                success_item.setBackground(QColor(232, 245, 233))
+                success_item.setBackground(QColor(232, 245, 233))  # Nền xanh nhạt
+                success_item.setForeground(QColor(46, 125, 50))   # Chữ xanh lá cây đậm
                 self.lstResult.addItem(success_item)
                 
                 # Enhanced pass indicator
