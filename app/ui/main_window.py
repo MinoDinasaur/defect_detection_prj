@@ -440,11 +440,11 @@ class DefectDetectionApp(QMainWindow):
         title_layout.setSpacing(15)
         
         # App title
-        title_label = QLabel("Defect Detection System - FULLSCREEN MODE")
+        title_label = QLabel("Defect Detection System")
         title_label.setStyleSheet("""
             QLabel {
                 color: white;
-                font-size: 14px;
+                font-size: 20px;
                 font-weight: bold;
                 padding: 2px 2px;
             }
@@ -487,17 +487,9 @@ class DefectDetectionApp(QMainWindow):
         if self.isFullScreen():
             self.showNormal()  # Thay đổi từ showMaximized() sang showNormal()
             self.fullscreen_btn.setText("□")
-            # Update title
-            title_label = self.title_bar.findChild(QLabel)
-            if title_label:
-                title_label.setText("Defect Detection System - WINDOWED MODE")
         else:
             self.showFullScreen()  # Chuyển về fullscreen
             self.fullscreen_btn.setText("🗗")
-            # Update title  
-            title_label = self.title_bar.findChild(QLabel)
-            if title_label:
-                title_label.setText("Defect Detection System - FULLSCREEN MODE")
 
     def title_bar_mouse_press(self, event):
         """Handle mouse press on title bar for dragging - chỉ khi không fullscreen"""
@@ -740,28 +732,133 @@ class DefectDetectionApp(QMainWindow):
                 self.lblImage.setPixmap(scaled_pixmap)
 
     def closeEvent(self, event):
+        """Handle close event with confirmation dialog"""
         try:
-            if hasattr(self, 'barcode_thread') and self.barcode_thread.isRunning():
-                print("Stopping barcode scanner...")
-                
-                # Request thread to stop gracefully
-                self.barcode_thread.requestInterruption()
-                
-                # Wait for thread to finish naturally
-                if not self.barcode_thread.wait(1000):  
-                    print("Thread didn't stop gracefully, terminating...")
-                    self.barcode_thread.terminate()
-                    if not self.barcode_thread.wait(500):  # Wait 1 more second
-                        print("Force killing thread")        
-                print("Barcode scanner stopped")
+            # TẠO DIALOG XÁC NHẬN THOÁT
+            msg_box = QMessageBox(self)
+            msg_box.setWindowTitle("🚪 Exit Application")
+            msg_box.setIcon(QMessageBox.Question)
             
-            # Stop other threads
-            if hasattr(self, 'image_thread') and self.image_thread.isRunning():
-                self.image_thread.requestInterruption()
-                if not self.image_thread.wait(1000):
-                    self.image_thread.terminate()
+            # NỘI DUNG DIALOG VỚI FONT LỚN
+            msg_box.setText(f"""
+            <h2 style='color: #e74c3c; font-size: 24px;'>🚪 Exit Defect Detection System</h2>
+            <p style='font-size: 20px; margin: 15px 0;'>
+            Are you sure you want to <b>exit</b> the application?
+            </p>
+            <p style='font-size: 18px; background: #fff3cd; padding: 10px; border-left: 4px solid #ffc107;'>
+            </p>
+            <p style='font-size: 16px; color: #666; margin-top: 15px;'>
+            💾 All data has been automatically saved to the database.
+            </p>
+            """)
+            
+            # TĂNG KÍCH THƯỚC DIALOG
+            msg_box.setMinimumSize(500, 350)
+            msg_box.resize(600, 400)
+            
+            # CUSTOM BUTTONS VỚI FONT LỚN HƠN
+            exit_btn = msg_box.addButton("🚪 Exit", QMessageBox.YesRole)
+            cancel_btn = msg_box.addButton("❌ Cancel", QMessageBox.NoRole)
+            
+            # STYLE CHO BUTTONS
+            exit_btn.setStyleSheet("""
+                QPushButton {
+                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                        stop:0 #e74c3c, stop:1 #c0392b);
+                    color: white;
+                    border: none;
+                    border-radius: 8px;
+                    padding: 12px 20px;
+                    font-size: 18px;
+                    font-weight: bold;
+                    min-width: 120px;
+                    min-height: 45px;
+                }
+                QPushButton:hover {
+                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                        stop:0 #c0392b, stop:1 #a93226);
+                    transform: scale(1.05);
+                }
+                QPushButton:pressed {
+                    transform: scale(0.95);
+                }
+            """)
+            
+            cancel_btn.setStyleSheet("""
+                QPushButton {
+                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                        stop:0 #95a5a6, stop:1 #7f8c8d);
+                    color: white;
+                    border: none;
+                    border-radius: 8px;
+                    padding: 12px 20px;
+                    font-size: 18px;
+                    font-weight: bold;
+                    min-width: 120px;
+                    min-height: 45px;
+                }
+                QPushButton:hover {
+                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                        stop:0 #a5b5b6, stop:1 #8f9c9d);
+                    transform: scale(1.05);
+                }
+                QPushButton:pressed {
+                    transform: scale(0.95);
+                }
+            """)
+            
+            # HIỂN THỊ DIALOG VÀ XỬ LÝ KẾT QUẢ
+            msg_box.exec()
+            
+            if msg_box.clickedButton() == exit_btn:
+                # USER CHỌN EXIT - THỰC HIỆN CLEANUP
+                print("User confirmed exit - Starting cleanup...")
+                
+                # Hiển thị thông báo đang thoát
+                self.status_message.setText("🔄 Shutting down application...")
+                
+                # Stop barcode scanner thread
+                if hasattr(self, 'barcode_thread') and self.barcode_thread.isRunning():
+                    print("Stopping barcode scanner...")
                     
+                    # Request thread to stop gracefully
+                    self.barcode_thread.requestInterruption()
+                    
+                    # Wait for thread to finish naturally
+                    if not self.barcode_thread.wait(1000):  
+                        print("Thread didn't stop gracefully, terminating...")
+                        self.barcode_thread.terminate()
+                        if not self.barcode_thread.wait(500):  # Wait 0.5 more second
+                            print("Force killing thread")        
+                    print("Barcode scanner stopped")
+                
+                # Stop image processing thread
+                if hasattr(self, 'image_thread') and self.image_thread.isRunning():
+                    print("Stopping image processing thread...")
+                    self.image_thread.requestInterruption()
+                    if not self.image_thread.wait(1000):
+                        self.image_thread.terminate()
+                    print("Image processing thread stopped")
+                
+                # Stop status timer
+                if hasattr(self, 'status_timer'):
+                    self.status_timer.stop()
+                    print("Status timer stopped")
+                
+                print("✅ Cleanup completed successfully")
+                
+                # Accept the close event
+                event.accept()
+                
+            else:
+                # USER CHỌN CANCEL - HỦY THOÁT
+                print("User cancelled exit")
+                self.status_message.setText("Exit cancelled - Application continues running")
+                
+                # Ignore the close event
+                event.ignore()
+                
         except Exception as e:
             print(f"Error during cleanup: {e}")
-        finally:
+            # Nếu có lỗi trong cleanup, vẫn cho phép thoát
             event.accept()
