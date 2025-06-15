@@ -168,7 +168,7 @@ class DetectionHistoryTab(QWidget):
         filter_layout.setSpacing(8)  # Giảm spacing
         
         # Date controls - compact
-        filter_layout.addWidget(QLabel("📅"))
+        filter_layout.addWidget(QLabel("Date"))
         self.date_from = QDateEdit()
         self.date_from.setCalendarPopup(True)
         self.date_from.setDate(QDate.currentDate().addDays(-7))
@@ -183,7 +183,7 @@ class DetectionHistoryTab(QWidget):
         filter_layout.addWidget(self.date_to)
         
         # Defect filter - compact
-        filter_layout.addWidget(QLabel("🔧"))
+        filter_layout.addWidget(QLabel("Defect Types"))
         self.defect_combo = QComboBox()
         self.defect_combo.addItem("All")
         filter_layout.addWidget(self.defect_combo)
@@ -224,7 +224,7 @@ class DetectionHistoryTab(QWidget):
         # Table với chiều cao lớn hơn
         self.history_table = QTableWidget()
         self.history_table.setColumnCount(6)
-        self.history_table.setHorizontalHeaderLabels(["#", "Date/Time", "Raw Image", "Detection Image", "Defects", "Barcode"])
+        self.history_table.setHorizontalHeaderLabels(["#", "Time", "Raw Image", "Detection Image", "Defects", "Barcode"])
         
         header = self.history_table.horizontalHeader()
         
@@ -233,13 +233,13 @@ class DetectionHistoryTab(QWidget):
         self.history_table.setColumnWidth(0, 40)
         
         header.setSectionResizeMode(1, QHeaderView.Fixed)
-        self.history_table.setColumnWidth(1, 100)
+        self.history_table.setColumnWidth(1, 120)
         
         header.setSectionResizeMode(2, QHeaderView.Fixed)
-        self.history_table.setColumnWidth(2, 140)
+        self.history_table.setColumnWidth(2, 180)
         
         header.setSectionResizeMode(3, QHeaderView.Fixed)
-        self.history_table.setColumnWidth(3, 140)
+        self.history_table.setColumnWidth(3, 230)
         
         header.setSectionResizeMode(4, QHeaderView.Fixed)
         self.history_table.setColumnWidth(4, 690)

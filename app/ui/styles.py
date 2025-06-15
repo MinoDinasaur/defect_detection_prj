@@ -769,7 +769,7 @@ class HistoryTabStyles:
     
     @staticmethod
     def get_table_style():
-        font_size = AppStyles.scale_font_size(18)  # Increased from 13
+        font_size = AppStyles.scale_font_size(20)  # Increased from 13
         header_font_size = AppStyles.scale_font_size(27)  # Increased from 12
         
         return f"""
@@ -842,7 +842,7 @@ class HistoryTabStyles:
     
     @staticmethod
     def get_details_title_style():
-        font_size = AppStyles.scale_font_size(17)  # Increased from 16
+        font_size = AppStyles.scale_font_size(20)  # Increased from 16
         
         return f"""
             QLabel {{
@@ -857,7 +857,7 @@ class HistoryTabStyles:
     
     @staticmethod
     def get_details_label_style():
-        font_size = AppStyles.scale_font_size(14)  # Increased from 13
+        font_size = AppStyles.scale_font_size(20)  # Increased from 13
         
         return f"""
             QLabel {{
@@ -875,7 +875,7 @@ class HistoryTabStyles:
     @staticmethod
     def get_action_button_style(color):
         """Get action button style with dynamic colors and bigger size"""
-        font_size = AppStyles.scale_font_size(14)  # Increased from 13
+        font_size = AppStyles.scale_font_size(30)  # Increased from 13
         
         color_map = {
             "#3498db": {"dark": "#2980b9", "light": "#5dade2"},
@@ -932,7 +932,7 @@ class HistoryTabStyles:
     
     @staticmethod
     def get_defect_status_styles():
-        font_size = AppStyles.scale_font_size(14)  # Increased from 13
+        font_size = AppStyles.scale_font_size(20)  # Increased from 13
         
         return {
             'failed': f"""
@@ -993,7 +993,7 @@ class HistoryTabStyles:
     
     @staticmethod
     def get_pagination_records_info_style():
-        font_size = AppStyles.scale_font_size(14)  # Increased from 13
+        font_size = AppStyles.scale_font_size(20)  # Increased from 13
         
         return f"""
             QLabel {{
@@ -1006,7 +1006,7 @@ class HistoryTabStyles:
     
     @staticmethod
     def get_pagination_page_info_style():
-        font_size = AppStyles.scale_font_size(15)  # Increased from 14
+        font_size = AppStyles.scale_font_size(20)  # Increased from 14
         
         return f"""
             QLabel {{
@@ -1021,7 +1021,7 @@ class HistoryTabStyles:
     
     @staticmethod
     def get_pagination_button_style():
-        font_size = AppStyles.scale_font_size(13)  # Increased from 12
+        font_size = AppStyles.scale_font_size(20)  # Increased from 12
         
         return f"""
             QPushButton {{
@@ -1057,7 +1057,7 @@ class HistoryTabStyles:
     
     @staticmethod
     def get_pagination_combo_style():
-        font_size = AppStyles.scale_font_size(13)  # Increased from 12
+        font_size = AppStyles.scale_font_size(20)  # Increased from 12
         
         return f"""
             QComboBox {{
@@ -1091,7 +1091,7 @@ class HistoryTabStyles:
     
     @staticmethod
     def get_pagination_label_style():
-        font_size = AppStyles.scale_font_size(13)  # Increased from 12
+        font_size = AppStyles.scale_font_size(20)  # Increased from 12
         
         return f"""
             QLabel {{
@@ -1118,7 +1118,7 @@ class HistoryTabStyles:
     @staticmethod
     def get_compact_header_title_style():
         """Compact header title style"""
-        font_size = AppStyles.scale_font_size(19)  # Increased from 18
+        font_size = AppStyles.scale_font_size(30)  # Increased from 18
         
         return f"""
             QLabel {{
@@ -1132,9 +1132,9 @@ class HistoryTabStyles:
     @staticmethod
     def get_compact_filter_group_style():
         """Compact filter group style with single row layout"""
-        font_size = AppStyles.scale_font_size(15)  # Increased from 14
-        input_font_size = AppStyles.scale_font_size(13)  # Increased from 12
-        button_font_size = AppStyles.scale_font_size(12)  # Increased from 11
+        font_size = AppStyles.scale_font_size(20)  # Increased from 14
+        input_font_size = AppStyles.scale_font_size(20)  # Increased from 12
+        button_font_size = AppStyles.scale_font_size(30)  # Increased from 11
         
         return f"""
             QGroupBox {{
@@ -1198,7 +1198,7 @@ class HistoryTabStyles:
     @staticmethod
     def get_compact_quick_filter_button_style():
         """Compact quick filter button style"""
-        font_size = AppStyles.scale_font_size(11)  # Increased from 10
+        font_size = AppStyles.scale_font_size(20)  # Increased from 10
         
         return f"""
             QPushButton {{
@@ -1234,7 +1234,7 @@ class HistoryTabStyles:
     @staticmethod
     def get_compact_pagination_records_info_style():
         """Compact records info style"""
-        font_size = AppStyles.scale_font_size(12)  # Increased from 11
+        font_size = AppStyles.scale_font_size(20)  # Increased from 11
         
         return f"""
             QLabel {{
@@ -1248,7 +1248,7 @@ class HistoryTabStyles:
     @staticmethod
     def get_compact_pagination_page_info_style():
         """Compact page info style"""
-        font_size = AppStyles.scale_font_size(13)  # Increased from 12
+        font_size = AppStyles.scale_font_size(20)  # Increased from 12
         
         return f"""
             QLabel {{
@@ -1264,7 +1264,7 @@ class HistoryTabStyles:
     @staticmethod
     def get_compact_pagination_button_style():
         """Compact pagination button style with icons only"""
-        font_size = AppStyles.scale_font_size(15)  # Increased from 14
+        font_size = AppStyles.scale_font_size(20)  # Increased from 14
         
         return f"""
             QPushButton {{
@@ -1296,7 +1296,7 @@ class HistoryTabStyles:
     @staticmethod
     def get_compact_pagination_combo_style():
         """Compact pagination combo style"""
-        font_size = AppStyles.scale_font_size(12)  # Increased from 11
+        font_size = AppStyles.scale_font_size(20)  # Increased from 11
         
         return f"""
             QComboBox {{
@@ -1314,7 +1314,7 @@ class HistoryTabStyles:
     @staticmethod
     def get_compact_pagination_label_style():
         """Compact pagination label style"""
-        font_size = AppStyles.scale_font_size(12)  # Increased from 11
+        font_size = AppStyles.scale_font_size(20)  # Increased from 11
         
         return f"""
             QLabel {{
@@ -1328,8 +1328,8 @@ class HistoryTabStyles:
     @staticmethod
     def get_expanded_table_style():
         """Table style with more vertical space"""
-        font_size = AppStyles.scale_font_size(14)  # Increased from 13
-        header_font_size = AppStyles.scale_font_size(13)  # Increased from 12
+        font_size = AppStyles.scale_font_size(20)  # Increased from 13
+        header_font_size = AppStyles.scale_font_size(27)  # Increased from 12
         
         return f"""
             QTableWidget {{
