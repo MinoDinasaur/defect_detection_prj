@@ -39,7 +39,7 @@ class ImageViewDialog(QDialog):
         title_layout = QHBoxLayout(title_frame)
         title_layout.setContentsMargins(20, 15, 20, 15)
         
-        title_label = QLabel(f"🖼️ {title}")
+        title_label = QLabel(f"{title}")
         title_label.setStyleSheet(HistoryTabStyles.get_image_view_title_label_style())
         title_layout.addWidget(title_label)
         title_layout.addStretch()

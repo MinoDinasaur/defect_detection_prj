@@ -245,12 +245,12 @@ class DefectDetectionApp(QMainWindow):
         self.barcode_thread = BarcodeThread()
         self.barcode_thread.barcode_scanned.connect(self.on_barcode_scanned)
         self.barcode_thread.start()
-        print("🔍 Barcode scanner started in background")
+        print("Barcode scanner started in background")
         
     @Slot(str)
     def on_barcode_scanned(self, barcode):
         """Handle barcode scanned event"""
-        print(f"📦 Barcode scanned: {barcode}")
+        print(f"Barcode scanned: {barcode}")
         # Update status bar to show scanned barcode
         self.status_message.setText(f"📦 Barcode: {barcode}")
         
