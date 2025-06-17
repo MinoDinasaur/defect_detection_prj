@@ -39,7 +39,7 @@ class PylonCamera:
             else:
                 return None
         except Exception as e:
-            print(f"Error capturing image: {e}")
+            print(f"Error capturing image")
             return None
         finally:
             # Close the camera to release resources

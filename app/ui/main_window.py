@@ -545,7 +545,7 @@ class DefectDetectionApp(QMainWindow):
             self.image_thread.start()
             
         except Exception as e:
-            self.show_error(f"Error capturing image: {str(e)}")
+            self.show_error(f"No device were found.")
             self.set_processing_state(False)
             self.progress_bar.setVisible(False)
 

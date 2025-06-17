@@ -13,7 +13,7 @@ def main():
         
         # Set application properties
         app.setApplicationName("Defect Detection System")
-        app.setApplicationDisplayName("🔍 Defect Detection System")
+        app.setApplicationDisplayName("Defect Detection System")
         app.setApplicationVersion("1.0")
         app.setOrganizationName("Hanoi University of Science and Technology")
         
@@ -47,8 +47,8 @@ def main():
                 time.sleep(0.3)  # Reduced time for faster startup
                 
         except Exception as e:
-            print(f"⚠️ Splash screen error: {e}")
-            print("📱 Starting without splash screen...")
+            print(f"Splash screen error: {e}")
+            print("Starting without splash screen...")
             if splash:
                 splash.close()
             splash = None
@@ -65,13 +65,13 @@ def main():
         if splash:
             splash.finish(main_window)
         
-        print("✅ Application started successfully")
+        print("Application started successfully")
         
         # Execute the application event loop
         return app.exec()
         
     except Exception as e:
-        print(f"❌ Fatal error: {e}")
+        print(f"Fatal error: {e}")
         try:
             QMessageBox.critical(None, "Application Error", f"Failed to start application:\n{str(e)}")
         except:
