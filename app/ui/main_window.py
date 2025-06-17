@@ -663,7 +663,7 @@ class DefectDetectionApp(QMainWindow):
             self.set_processing_state(False)
 
     def clear_results(self):
-        """Enhanced clear function with animations"""
+        """Enhanced clear function with animations and barcode reset"""
         self.lblImage.clear()
         self.lblImage.setText("Captured image will appear here\n\nClick 'Capture Image' to start quality inspection")
         self.lstResult.clear()
@@ -680,7 +680,12 @@ class DefectDetectionApp(QMainWindow):
         self.result_indicator.setMaximumHeight(120)
         self.result_indicator.setStyleSheet(AppStyles.get_result_indicator_styles()['waiting'])
         
-        self.status_message.setText("Results cleared")
+        # RESET BARCODE - THÊM DÒNG NÀY
+        from sqlite_database.src.db_operations import reset_scanned_barcode
+        reset_scanned_barcode()
+        print("Barcode cleared")
+        
+        self.status_message.setText("Results and barcode cleared")
 
     def set_processing_state(self, is_processing):
         """Enhanced processing state with visual feedback"""
