@@ -178,32 +178,6 @@ def get_defect_types():
     query = "SELECT DISTINCT defect FROM detections"
     return execute_query(query, fetch=True)
 
-def get_detections(date_from, date_to, defect_filter=None):
-    """
-    Fetch detection records based on filters.
-
-    Args:
-        date_from (str): Start date in 'YYYY-MM-DD' format.
-        date_to (str): End date in 'YYYY-MM-DD' format.
-        defect_filter (str): Filter for defect type (optional).
-
-    Returns:
-        list: List of detection records.
-    """
-    query = "SELECT rowid, time, img_raw, img_detect, defect, barcode FROM detections WHERE time BETWEEN ? AND ?"
-    params = [date_from, date_to]
-
-    if defect_filter and defect_filter != "All":
-        if defect_filter == "No defects":
-            query += " AND defect = ?"
-            params.append("No defects")
-        else:
-            query += " AND defect LIKE ?"
-            params.append(f"%{defect_filter}%")
-
-    query += " ORDER BY time DESC"
-    return execute_query(query, params, fetch=True)
-
 def get_detections_paginated(date_from, date_to, defect_filter=None, page=1, page_size=10):
     """
     Fetch detection records with pagination.

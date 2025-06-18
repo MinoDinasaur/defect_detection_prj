@@ -1,18 +1,17 @@
 from PySide6.QtWidgets import (
-    QApplication, QMainWindow, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, 
+    QMainWindow, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, 
     QFrame, QListWidget, QListWidgetItem, QWidget, QSplitter, QSizePolicy,
-    QStatusBar, QToolBar, QTabWidget, QGridLayout, QGroupBox, QMessageBox, QLineEdit,
-    QProgressBar, QScrollArea, QGraphicsDropShadowEffect
+    QStatusBar, QTabWidget, QGroupBox, QMessageBox,
+    QProgressBar, QGraphicsDropShadowEffect
 )
-from PySide6.QtCore import Qt, QSize, QTimer, Signal, Slot, QThread, QPropertyAnimation, QEasingCurve
-from PySide6.QtGui import QImage, QPixmap, QIcon, QFont, QColor, QPalette, QPainter, QLinearGradient
-from app.model.detector import detect_image, plot_results_without_confidence
+from PySide6.QtCore import Qt, QTimer, Signal, Slot, QThread
+from PySide6.QtGui import QImage, QPixmap, QFont, QColor
+from app.model.detector import plot_results_without_confidence
 import cv2
 from datetime import datetime
 from app.camera.basler_camera import PylonCamera
 from app.ui.detection_history_tab import DetectionHistoryTab
 from sqlite_database.src.db_operations import update_detection_in_db, create_database, create_connection, get_scanned_barcode
-# Import barcode detector
 from app.barcode.detector import read_from_scanner_pynput
 import numpy as np
 from app.ui.styles import AppStyles

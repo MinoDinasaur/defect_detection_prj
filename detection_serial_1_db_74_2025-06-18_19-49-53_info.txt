@@ -1,0 +1,14 @@
+Detection Export Report
+==================================================
+
+Serial Number: #1
+Database ID: 74
+Timestamp: 2025-06-18 19:49:53
+Defects: bridge, lifted, miss
+Barcode: No barcode
+
+Exported Files:
+- detection_serial_1_db_74_2025-06-18_19-49-53_raw.png
+- detection_serial_1_db_74_2025-06-18_19-49-53_detect.png
+
+Export Date: 2025-06-18 19:57:09

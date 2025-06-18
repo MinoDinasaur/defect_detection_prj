@@ -1,18 +1,17 @@
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem, QPushButton,
     QGroupBox, QLabel, QComboBox, QDateEdit, QHeaderView, QSplitter, QMessageBox,
-    QDialog, QFileDialog, QFrame, QSizePolicy, QGridLayout, QGraphicsDropShadowEffect
+    QDialog, QFileDialog, QFrame, QSizePolicy, QGridLayout
 )
-from PySide6.QtCore import Qt, QDateTime, QDate, Signal, Slot
-from PySide6.QtGui import QPixmap, QImage, QIcon, QFont, QColor
-import sqlite3
+from PySide6.QtCore import Qt, QDate, Signal
+from PySide6.QtGui import QPixmap, QImage, QColor
 import cv2
 import numpy as np
 import os
 from datetime import datetime
 from sqlite_database.src.db_operations import (
     get_defect_types, delete_detection_from_db,
-    get_detections, get_image_data, get_detections_paginated,
+    get_image_data, get_detections_paginated,
     get_detection_for_export  
 )
 from app.ui.styles import HistoryTabStyles
