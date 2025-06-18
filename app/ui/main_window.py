@@ -6,7 +6,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, QSize, QTimer, Signal, Slot, QThread, QPropertyAnimation, QEasingCurve
 from PySide6.QtGui import QImage, QPixmap, QIcon, QFont, QColor, QPalette, QPainter, QLinearGradient
-from app.model.detector import detect_image
+from app.model.detector import detect_image, plot_results_without_confidence
 import cv2
 from datetime import datetime
 from app.camera.basler_camera import PylonCamera
@@ -14,7 +14,7 @@ from app.ui.detection_history_tab import DetectionHistoryTab
 from sqlite_database.src.db_operations import update_detection_in_db, create_database, create_connection, get_scanned_barcode
 # Import barcode detector
 from app.barcode.detector import read_from_scanner_pynput
-import threading
+import numpy as np
 from app.ui.styles import AppStyles
 
 class BarcodeThread(QThread):
@@ -47,14 +47,13 @@ class ImageThread(QThread):
         # Emit progress updates
         self.progress_updated.emit(25)
         
-        # Process image in background thread
-        results = detect_image(self.row_id)  
+        # Process image in background thread với custom plotting
+        from app.model.detector import detect_image_with_custom_plot
+        img_with_boxes, result_obj = detect_image_with_custom_plot(self.row_id)
         
         self.progress_updated.emit(75)
         
-        if results:
-            result_obj = results[0]
-            img_with_boxes = result_obj.plot()
+        if img_with_boxes is not None and result_obj is not None:
             # Emit the processed image and results
             self.image_loaded.emit(img_with_boxes, result_obj)
             
@@ -529,10 +528,7 @@ class DefectDetectionApp(QMainWindow):
             # 1. Test với file cụ thể:
             # row_id = camera.capture_image_from_file()
             
-            # 2. Test với file có tên cụ thể trong storage:
-            # row_id = camera.capture_test_image("defect_sample.jpg")
-            
-            # 3. Dùng camera thật (dòng gốc):
+            # 2. Dùng camera thật (dòng gốc):
             row_id = camera.capture_image()
             
             if row_id is None:
@@ -558,9 +554,18 @@ class DefectDetectionApp(QMainWindow):
 
     @Slot(object, object)
     def on_image_processed(self, img_with_boxes, result_obj):
-        """Handle processed image with enhanced UI updates"""
+        """Handle processed image with enhanced UI updates - WITHOUT CONFIDENCE SCORES"""
         try:
-            # Save to database
+            # Get original image for custom plotting
+            img_raw_data = self.get_original_image_data(self.image_thread.row_id)
+            if img_raw_data:
+                # Convert to image array
+                img_array = cv2.imdecode(np.frombuffer(img_raw_data, np.uint8), cv2.IMREAD_COLOR)
+                
+                # Use custom plotting WITHOUT confidence scores
+                img_with_boxes = plot_results_without_confidence([result_obj], img_array)
+            
+            # Save to database với custom image
             update_detection_in_db(self.image_thread.row_id, img_with_boxes, result_obj)
 
             # TỰ ĐỘNG REFRESH HISTORY TAB NGAY SAU KHI CHỤP XONG
@@ -609,7 +614,7 @@ class DefectDetectionApp(QMainWindow):
                 self.status_card.update_value("FAILED", "#e74c3c")
                 
                 # Enhanced defect list
-                header_item = QListWidgetItem("⚠ ALERT: Defects Detected")
+                header_item = QListWidgetItem("ALERT: Defects Detected")
                 header_item.setFont(QFont("Segoe UI", 16, QFont.Bold))
                 header_item.setBackground(QColor(255, 240, 240))
                 header_item.setForeground(QColor(220, 53, 69))  # Màu đỏ cho text
@@ -620,7 +625,7 @@ class DefectDetectionApp(QMainWindow):
                     confidence = confidences[i] * 100
                     
                     # CHỈ HIỂN THỊ TÊN DEFECT, KHÔNG CÓ CONFIDENCE
-                    item_text = f"● Defect #{idx+1}: {defect_name}"
+                    item_text = f"Defect #{idx+1}: {defect_name}"
                     item = QListWidgetItem(item_text)
                     item.setFont(QFont("Segoe UI", 13))
                     
@@ -635,7 +640,7 @@ class DefectDetectionApp(QMainWindow):
                     self.lstResult.addItem(item)
                 
                 # Enhanced fail indicator
-                self.result_indicator.setText(f"✗ QUALITY FAILED\n{defect_count} defects detected")
+                self.result_indicator.setText(f"QUALITY FAILED\n{defect_count} defects detected")
                 self.result_indicator.setStyleSheet(AppStyles.get_result_indicator_styles()['failed'])
                 
             else:
@@ -645,22 +650,31 @@ class DefectDetectionApp(QMainWindow):
                 self.status_card.update_value("PASSED", "#27ae60")
                 
                 # Enhanced pass message VỚI MÀU XANH LÁ CÂY
-                success_item = QListWidgetItem("✓ QUALITY PASSED\n\nProduct meets all quality standards\nNo defects detected in inspection")
+                success_item = QListWidgetItem("QUALITY PASSED\n\nProduct meets all quality standards\nNo defects detected in inspection")
                 success_item.setFont(QFont("Segoe UI", 16))
                 success_item.setBackground(QColor(232, 245, 233))  # Nền xanh nhạt
                 success_item.setForeground(QColor(46, 125, 50))   # Chữ xanh lá cây đậm
                 self.lstResult.addItem(success_item)
                 
                 # Enhanced pass indicator
-                self.result_indicator.setText("✓ QUALITY PASSED\nNo defects detected")
+                self.result_indicator.setText("QUALITY PASSED\nNo defects detected")
                 self.result_indicator.setStyleSheet(AppStyles.get_result_indicator_styles()['passed'])
             
             self.set_processing_state(False)
-            self.status_message.setText("🟢 Analysis complete")
+            self.status_message.setText("Analysis complete")
             
         except Exception as e:
             self.show_error(f"Error processing results: {str(e)}")
             self.set_processing_state(False)
+
+    def get_original_image_data(self, row_id):
+        """Get original image data for custom plotting"""
+        try:
+            from sqlite_database.src.db_operations import get_image_data
+            return get_image_data(row_id, "img_raw")
+        except Exception as e:
+            print(f"Error getting original image data: {e}")
+            return None
 
     def clear_results(self):
         """Enhanced clear function with animations and barcode reset"""
