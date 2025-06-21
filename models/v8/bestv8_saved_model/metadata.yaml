@@ -1,0 +1,24 @@
+description: Ultralytics bestv8 model trained on /content/My-First-Project-2-3/data.yaml
+author: Ultralytics
+date: '2025-06-15T20:00:19.965322'
+version: 8.3.154
+license: AGPL-3.0 License (https://ultralytics.com/license)
+docs: https://docs.ultralytics.com
+stride: 32
+task: detect
+batch: 1
+imgsz:
+- 640
+- 640
+names:
+  0: bridge
+  1: lifted
+  2: miss
+  3: ok
+args:
+  batch: 1
+  fraction: 1.0
+  half: false
+  int8: true
+  nms: false
+channels: 3

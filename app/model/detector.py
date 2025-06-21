@@ -5,7 +5,7 @@ from sqlite_database.src.db_operations import get_image_data
 import numpy as np
 
 # Load YOLO model
-model = YOLO("./models/v8/bestv8.onnx")
+model = YOLO("models/v8/bestv8_saved_model/bestv8_full_integer_quant.tflite")
 
 def plot_results_without_confidence(results, img_array):
     """
