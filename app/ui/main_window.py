@@ -2,7 +2,7 @@ from PySide6.QtWidgets import (
     QMainWindow, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, 
     QFrame, QListWidget, QListWidgetItem, QWidget, QSplitter, QSizePolicy,
     QStatusBar, QTabWidget, QGroupBox, QMessageBox,
-    QProgressBar, QGraphicsDropShadowEffect
+    QProgressBar, QGraphicsDropShadowEffect, QLineEdit  # ADD QLineEdit
 )
 from PySide6.QtCore import Qt, QTimer, Signal, Slot, QThread
 from PySide6.QtGui import QImage, QPixmap, QFont, QColor
@@ -211,7 +211,16 @@ class DefectDetectionApp(QMainWindow):
         
         # Initial status update
         self.update_status_bar()
+        
+        # AUTO-FOCUS TO BARCODE INPUT ON STARTUP
+        QTimer.singleShot(100, self.focus_barcode_input)
     
+    def focus_barcode_input(self):
+        """Set focus to barcode input field"""
+        if hasattr(self, 'barcode_input'):
+            self.barcode_input.setFocus()
+            print("Barcode input focused - ready for scanning")
+
     def setup_status_bar(self):
         """Setup modern status bar"""
         self.statusBar = QStatusBar()
@@ -245,25 +254,46 @@ class DefectDetectionApp(QMainWindow):
         self.barcode_thread.start()
         print("Barcode scanner started in background")
         
+    def on_barcode_entered(self):
+        """Handle when barcode is entered in input field"""
+        barcode = self.barcode_input.text().strip()
+        if barcode:
+            print(f"Barcode entered manually: {barcode}")
+            
+            # Set the barcode in database
+            from sqlite_database.src.db_operations import set_scanned_barcode
+            set_scanned_barcode(barcode)
+            
+            # Update status
+            self.status_message.setText(f"📦 Barcode: {barcode}")
+            
+            # Visual feedback
+            self.show_barcode_notification(barcode)
+            
+            # AUTO-FOCUS back to input for next scan
+            self.barcode_input.selectAll()  # Select all text for easy replacement
+    
+    def on_barcode_text_changed(self, text):
+        """Handle barcode text changes (real-time feedback)"""
+        if len(text) > 0:
+            # Show real-time feedback
+            self.status_message.setText(f"Scanning: {text}...")
+
     @Slot(str)
     def on_barcode_scanned(self, barcode):
-        """Handle barcode scanned event"""
-        print(f"Barcode scanned: {barcode}")
-        # Update status bar to show scanned barcode
+        """Handle barcode scanned event from pynput (if still using)"""
+        print(f"Barcode scanned via pynput: {barcode}")
+        
+        # AUTO-FILL the input field
+        self.barcode_input.setText(barcode)
+        self.barcode_input.selectAll()
+        
+        # Update status bar
         self.status_message.setText(f"📦 Barcode: {barcode}")
         
-        # You can add visual feedback here
+        # Visual feedback
         self.show_barcode_notification(barcode)
         
-    def show_barcode_notification(self, barcode):
-        """Show visual notification when barcode is scanned"""
-        # Create a temporary status message
-        original_style = self.status_message.styleSheet()
-        self.status_message.setStyleSheet(AppStyles.get_barcode_notification_style())
-        
-        # Reset style after 3 seconds
-        QTimer.singleShot(3000, lambda: self.status_message.setStyleSheet(original_style))
-
     def setup_live_detection_tab(self):
         """Setup the enhanced UI for live detection tab"""
         main_layout = QVBoxLayout(self.live_detection_tab)
@@ -283,6 +313,51 @@ class DefectDetectionApp(QMainWindow):
         title_layout.addWidget(title_label)
         header_layout.addLayout(title_layout)
         header_layout.addStretch()
+        
+        # ADD BARCODE INPUT SECTION TO HEADER
+        barcode_layout = QVBoxLayout()
+        barcode_label = QLabel("Barcode Scanner:")
+        barcode_label.setStyleSheet("""
+            QLabel {
+                color: white;
+                font-size: 16px;
+                font-weight: bold;
+                margin: 0;
+            }
+        """)
+        
+        # BARCODE INPUT FIELD
+        self.barcode_input = QLineEdit()
+        self.barcode_input.setPlaceholderText("Scan barcode here or type manually...")
+        self.barcode_input.setStyleSheet("""
+            QLineEdit {
+                background: white;
+                border: 2px solid #4a86e8;
+                border-radius: 8px;
+                padding: 8px 12px;
+                font-size: 18px;
+                font-weight: bold;
+                color: #2c3e50;
+                min-width: 250px;
+                max-width: 300px;
+            }
+            QLineEdit:focus {
+                border: 2px solid #2ecc71;
+                background: #f0fff0;
+            }
+            QLineEdit:hover {
+                border: 2px solid #5dade2;
+            }
+        """)
+        
+        # CONNECT BARCODE INPUT TO HANDLER
+        self.barcode_input.returnPressed.connect(self.on_barcode_entered)
+        self.barcode_input.textChanged.connect(self.on_barcode_text_changed)
+        
+        barcode_layout.addWidget(barcode_label)
+        barcode_layout.addWidget(self.barcode_input)
+        
+        header_layout.addLayout(barcode_layout)
         
         main_layout.addWidget(header_frame)
         
@@ -525,10 +600,10 @@ class DefectDetectionApp(QMainWindow):
             # Uncomment một trong những dòng dưới để test:
             
             # 1. Test với file cụ thể:
-            # row_id = camera.capture_image_from_file()
+            row_id = camera.capture_image_from_file()
             
             # 2. Dùng camera thật (dòng gốc):
-            row_id = camera.capture_image()
+            # row_id = camera.capture_image()
             
             if row_id is None:
                 raise Exception("Failed to capture image.")    
@@ -693,7 +768,11 @@ class DefectDetectionApp(QMainWindow):
         self.result_indicator.setMaximumHeight(120)
         self.result_indicator.setStyleSheet(AppStyles.get_result_indicator_styles()['waiting'])
         
-        # RESET BARCODE - THÊM DÒNG NÀY
+        # CLEAR BARCODE INPUT FIELD
+        self.barcode_input.clear()
+        self.barcode_input.setFocus()  # Set focus to input field
+        
+        # RESET BARCODE IN DATABASE
         from sqlite_database.src.db_operations import reset_scanned_barcode
         reset_scanned_barcode()
         print("Barcode cleared")
