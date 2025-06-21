@@ -657,8 +657,48 @@ class AppStyles:
                 transform: scale(0.95);
             }
         """
+    
 
-
+    @staticmethod
+    def get_barcode_label_style():
+        """Style for barcode scanner label"""
+        font_size = AppStyles.scale_font_size(22)  # Scale based on screen
+        
+        return f"""
+            QLabel {{
+                color: white;
+                font-size: {font_size}px;
+                font-weight: bold;
+                margin: 0;
+            }}
+        """
+    
+    @staticmethod
+    def get_barcode_input_style():
+        """Style for barcode input field"""
+        font_size = AppStyles.scale_font_size(18)  # Scale based on screen
+        
+        return f"""
+            QLineEdit {{
+                background: white;
+                border: 2px solid #4a86e8;
+                border-radius: 8px;
+                padding: 8px 12px;
+                font-size: {font_size}px;
+                font-weight: bold;
+                color: #2c3e50;
+                min-width: 250px;
+                max-width: 300px;
+            }}
+            QLineEdit:focus {{
+                border: 2px solid #2ecc71;
+                background: #f0fff0;
+            }}
+            QLineEdit:hover {{
+                border: 2px solid #5dade2;
+            }}
+        """
+    
 class HistoryTabStyles:
     """Styles specifically for Detection History Tab with bigger buttons"""
     
@@ -870,7 +910,7 @@ class HistoryTabStyles:
             }}
             QPushButton:hover {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #a5b5b6, stop:1 #8f9c8d);
+                    stop:0 #a5b5b6, stop:1 #8f9c9d);
                 transform: translateY(-1px);
             }}
         """
@@ -1443,7 +1483,7 @@ class HistoryTabStyles:
             }}
             QPushButton:hover {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #a5b5b6, stop:1 #8f9c8d);
+                    stop:0 #a5b5b6, stop:1 #8f9c9d);
                 transform: translateY(-1px);
             }}
             QPushButton:pressed {{

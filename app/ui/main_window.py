@@ -317,38 +317,12 @@ class DefectDetectionApp(QMainWindow):
         # ADD BARCODE INPUT SECTION TO HEADER
         barcode_layout = QVBoxLayout()
         barcode_label = QLabel("Barcode Scanner:")
-        barcode_label.setStyleSheet("""
-            QLabel {
-                color: white;
-                font-size: 16px;
-                font-weight: bold;
-                margin: 0;
-            }
-        """)
+        barcode_label.setStyleSheet(AppStyles.get_barcode_label_style())  # ← SỬ DỤNG STYLE TỪ AppStyles
         
         # BARCODE INPUT FIELD
         self.barcode_input = QLineEdit()
         self.barcode_input.setPlaceholderText("Scan barcode here or type manually...")
-        self.barcode_input.setStyleSheet("""
-            QLineEdit {
-                background: white;
-                border: 2px solid #4a86e8;
-                border-radius: 8px;
-                padding: 8px 12px;
-                font-size: 18px;
-                font-weight: bold;
-                color: #2c3e50;
-                min-width: 250px;
-                max-width: 300px;
-            }
-            QLineEdit:focus {
-                border: 2px solid #2ecc71;
-                background: #f0fff0;
-            }
-            QLineEdit:hover {
-                border: 2px solid #5dade2;
-            }
-        """)
+        self.barcode_input.setStyleSheet(AppStyles.get_barcode_input_style())  # ← SỬ DỤNG STYLE TỪ AppStyles
         
         # CONNECT BARCODE INPUT TO HANDLER
         self.barcode_input.returnPressed.connect(self.on_barcode_entered)
