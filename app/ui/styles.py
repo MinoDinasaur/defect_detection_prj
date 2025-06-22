@@ -657,7 +657,22 @@ class AppStyles:
                 transform: scale(0.95);
             }
         """
-    
+    @staticmethod
+    def get_barcode_notification_style():
+        """Style for barcode scanner container"""
+        return """
+                QLabel {
+                    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                        stop:0 #d4edda, stop:1 #c3e6cb);
+                    color: #155724;
+                    border: 2px solid #28a745;
+                    border-radius: 8px;
+                    padding: 8px 16px;
+                    font-weight: bold;
+                    font-size: 19px;
+                    margin: 2px;
+                }
+            """
 
     @staticmethod
     def get_barcode_label_style():

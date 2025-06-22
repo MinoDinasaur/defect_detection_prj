@@ -892,3 +892,22 @@ class DefectDetectionApp(QMainWindow):
             print(f"Error during cleanup: {e}")
             # Nếu có lỗi trong cleanup, vẫn cho phép thoát
             event.accept()
+
+    def show_barcode_notification(self, barcode):
+        """Show enhanced visual notification for barcode scan in status bar"""
+        try:
+
+            self.status_message.setText(f"Barcode Scanned: {barcode}")
+            
+            # Apply enhanced styling for barcode notification
+            self.status_message.setStyleSheet(AppStyles.get_barcode_notification_style())
+            
+            # Reset styling after 4 seconds
+            QTimer.singleShot(4000, lambda: self.status_message.setStyleSheet(
+                "padding: 4px 8px; font-weight: 500; font-size: 19px; color: #6c757d;"
+            ))
+            
+            print(f"Barcode notification shown: {barcode}")
+            
+        except Exception as e:
+            print(f"Error showing barcode notification: {e}")
